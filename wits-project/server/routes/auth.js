@@ -1,21 +1,22 @@
-// server/routes/auth.js
 const express = require('express');
 const router = express.Router();
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const config = require('config');
 const { check, validationResult } = require('express-validator');
 
 const User = require('../models/User');
 const auth = require('../middleware/auth');
 
-// @route POST api/auth/register
-// @desc Register user
+/**
+ * @route   POST api/auth/register
+ * @desc    Register new user
+ * @access  Public
+ */
 router.post(
   '/register',
   [
     check('email', 'Please include a valid email').isEmail(),
-    check('password', 'Please enter a password with 6 or more characters').isLength({ min: 6 }),
+    check('password', 'Password must be at least 6 characters').isLength({ min: 6 }),
   ],
   async (req, res) => {
     const errors = validationResult(req);
@@ -26,18 +27,17 @@ router.post(
     const { email, password } = req.body;
 
     try {
-      let user = await User.findOne({ email });
-
+      let user = await User.findOne({ email: email.toLowerCase() });
       if (user) {
         return res.status(400).json({ msg: 'User already exists' });
       }
 
       const isAdmin = email.toLowerCase() === 'admin@wits.com';
+
       user = new User({
-        email,
+        email: email.toLowerCase(),
         password,
         isAdmin,
-        // Set default values to prevent crashes on the client-side
         puzzlesSolved: 0,
         xp: 0,
         xpTotal: 250,
@@ -49,11 +49,13 @@ router.post(
         recentlySolved: [],
       });
 
+      // Hash password
       const salt = await bcrypt.genSalt(10);
       user.password = await bcrypt.hash(password, salt);
 
       await user.save();
 
+      // Create JWT payload
       const payload = {
         user: {
           id: user.id,
@@ -61,24 +63,22 @@ router.post(
         },
       };
 
-      jwt.sign(
-        payload,
-        config.get('jwtSecret'),
-        { expiresIn: 360000 },
-        (err, token) => {
-          if (err) throw err;
-          res.json({ token });
-        }
-      );
+      jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '10h' }, (err, token) => {
+        if (err) throw err;
+        return res.json({ token });
+      });
     } catch (err) {
-      console.error(err.message);
-      res.status(500).send('Server Error');
+      console.error('Register Error:', err.message);
+      return res.status(500).send('Server Error');
     }
   }
 );
 
-// @route POST api/auth/login
-// @desc Authenticate user & get token
+/**
+ * @route   POST api/auth/login
+ * @desc    Authenticate user and return token
+ * @access  Public
+ */
 router.post(
   '/login',
   [
@@ -94,7 +94,7 @@ router.post(
     const { email, password } = req.body;
 
     try {
-      let user = await User.findOne({ email });
+      let user = await User.findOne({ email: email.toLowerCase() });
       if (!user) {
         return res.status(400).json({ msg: 'Invalid Credentials' });
       }
@@ -111,32 +111,30 @@ router.post(
         },
       };
 
-      jwt.sign(
-        payload,
-        config.get('jwtSecret'),
-        { expiresIn: 360000 },
-        (err, token) => {
-          if (err) throw err;
-          res.json({ token });
-        }
-      );
+      jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '10h' }, (err, token) => {
+        if (err) throw err;
+        return res.json({ token });
+      });
     } catch (err) {
-      console.error(err.message);
-      res.status(500).send('Server Error');
+      console.error('Login Error:', err.message);
+      return res.status(500).send('Server Error');
     }
   }
 );
 
-// @route GET api/auth
-// @desc Get logged in user
+/**
+ * @route   GET api/auth
+ * @desc    Get logged-in user
+ * @access  Private
+ */
 router.get('/', auth, async (req, res) => {
-    try {
-        const user = await User.findById(req.user.id).select('-password');
-        res.json(user);
-    } catch (err) {
-        console.error(err.message);
-        res.status(500).send('Server Error');
-    }
+  try {
+    const user = await User.findById(req.user.id).select('-password');
+    return res.json(user);
+  } catch (err) {
+    console.error('Auth GET Error:', err.message);
+    return res.status(500).send('Server Error');
+  }
 });
 
 module.exports = router;
