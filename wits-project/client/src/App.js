@@ -340,7 +340,7 @@ const PuzzlesPage = ({ puzzles, onSelectPuzzle }) => {
                         </div>
                     </div>
                     <div className="flex-1">
-                        <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">Category</label>
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Category</label>
                         <div className="flex space-x-2 bg-white dark:bg-gray-900 p-1 rounded-lg border border-gray-200 dark:border-gray-800">
                             {['All', 'Math', 'Logic', 'Visual'].map(cat => (
                                 <button key={cat} onClick={() => setCategory(cat)} className={`flex-1 px-4 py-2 text-sm font-medium rounded-md transition-colors ${category === cat ? 'bg-black text-white shadow dark:bg-white dark:text-black' : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800'}`}>
@@ -594,7 +594,7 @@ const AuthPage = ({ isSignIn, setCurrentPage, handleLogin }) => {
             alert("Please fill in all fields.");
             return;
         }
-        handleLogin(email, password); 
+        handleLogin(email, password, !isSignIn);
     };
 
     return (
