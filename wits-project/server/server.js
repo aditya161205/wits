@@ -1,24 +1,15 @@
-// server/server.js
-require('dotenv').config();
-const express = require('express');
-const cors =require('cors');
-const connectDB = require('./config/db');
+const mongoose = require('mongoose');
 
-const app = express();
+const connectDB = async () => {
+  try {
+    await mongoose.connect(process.env.MONGO_URI, {
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
+    });
+  } catch (error) {
+    console.error('MongoDB connection error:', error.message);
+    throw error; // Throw error to be caught in server.js
+  }
+};
 
-// Connect Database
-connectDB();
-
-// Init Middleware
-app.use(cors());
-app.use(express.json({ extended: false }));
-
-app.get('/', (req, res) => res.send('Wits API is running'));
-
-// Define Routes
-app.use('/api/auth', require('./routes/auth'));
-app.use('/api/puzzles', require('./routes/puzzles'));
-app.use('/api/users', require('./routes/users'));
-
-const PORT = process.env.PORT || 5001;
-app.listen(PORT, () => console.log(`Server started on port ${PORT}`));
+module.exports = connectDB;

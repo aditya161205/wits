@@ -26,6 +26,58 @@ const setAuthToken = (token) => {
     }
 };
 
+// --- NEW COMPONENT ---
+const PuzzleHeatmap = ({ recentlySolved, isDarkMode }) => {
+    const today = new Date();
+    const days = [];
+    for (let i = 0; i < 365; i++) {
+        const date = new Date(today);
+        date.setDate(today.getDate() - i);
+        days.push(date);
+    }
+
+    const solvedDates = recentlySolved.reduce((acc, puzzle) => {
+        const date = new Date(puzzle.dateSolved || puzzle.date).toISOString().split('T')[0];
+        acc[date] = (acc[date] || 0) + 1;
+        return acc;
+    }, {});
+
+    const maxSolved = Math.max(...Object.values(solvedDates), 0);
+    const colorMap = (count) => {
+        if (count === 0) return isDarkMode ? 'bg-gray-800' : 'bg-gray-200';
+        if (count === 1) return isDarkMode ? 'bg-green-800' : 'bg-green-400';
+        if (count === 2) return isDarkMode ? 'bg-green-700' : 'bg-green-500';
+        if (count >= 3) return isDarkMode ? 'bg-green-600' : 'bg-green-600';
+    };
+
+    return (
+        <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl p-6">
+            <h4 className="font-semibold text-gray-800 dark:text-gray-200 mb-4">Solving Streak</h4>
+            <div className="flex justify-end text-sm text-gray-500 dark:text-gray-400 mb-2">
+                Less <div className="w-4 h-4 rounded ml-1 mr-0.5 bg-gray-200 dark:bg-gray-800"></div>
+                <div className="w-4 h-4 rounded mx-0.5 bg-green-400 dark:bg-green-800"></div>
+                <div className="w-4 h-4 rounded mx-0.5 bg-green-500 dark:bg-green-700"></div>
+                <div className="w-4 h-4 rounded mx-0.5 bg-green-600 dark:bg-green-600"></div>
+                More
+            </div>
+            <div className="grid grid-flow-col grid-rows-7 gap-1">
+                {days.reverse().map((day) => {
+                    const dateString = day.toISOString().split('T')[0];
+                    const solvedCount = solvedDates[dateString] || 0;
+                    return (
+                        <div
+                            key={day.toISOString()}
+                            className={`w-4 h-4 rounded transition-colors ${colorMap(solvedCount)}`}
+                            title={`${solvedCount} puzzles solved on ${day.toDateString()}`}
+                        />
+                    );
+                })}
+            </div>
+        </div>
+    );
+};
+
+
 // --- COMPONENTS ---
 
 const Navbar = ({ currentPage, setCurrentPage, isAdmin, isDarkMode, toggleDarkMode, isAuthenticated, handleLogout }) => {
@@ -117,6 +169,18 @@ const InteractiveGridBackground = ({ isDarkMode }) => {
     const canvasRef = useRef(null);
     const mouse = useRef({ x: -1000, y: -1000, radius: 80 });
 
+    const handleMouseMove = useCallback((e) => {
+        // Adjust mouse position relative to the canvas
+        const rect = canvasRef.current.getBoundingClientRect();
+        mouse.current.x = e.clientX - rect.left;
+        mouse.current.y = e.clientY - rect.top;
+    }, []);
+
+    const handleMouseLeave = useCallback(() => {
+        mouse.current.x = -1000;
+        mouse.current.y = -1000;
+    }, []);
+
     useEffect(() => {
         const canvas = canvasRef.current;
         const ctx = canvas.getContext('2d');
@@ -127,20 +191,10 @@ const InteractiveGridBackground = ({ isDarkMode }) => {
             canvas.height = canvas.offsetHeight;
         };
 
-        const handleMouseMove = (e) => {
-            const rect = canvas.getBoundingClientRect();
-            mouse.current.x = e.clientX - rect.left;
-            mouse.current.y = e.clientY - rect.top;
-        };
-
-        const handleMouseLeave = () => {
-            mouse.current.x = -1000;
-            mouse.current.y = -1000;
-        };
-
         window.addEventListener('resize', resizeCanvas);
-        canvas.addEventListener('mousemove', handleMouseMove);
-        canvas.addEventListener('mouseleave', handleMouseLeave);
+        // Listen for mouse events on the window to capture movement anywhere on the page
+        window.addEventListener('mousemove', handleMouseMove);
+        window.addEventListener('mouseout', handleMouseLeave);
         resizeCanvas();
 
         const dots = [];
@@ -184,23 +238,23 @@ const InteractiveGridBackground = ({ isDarkMode }) => {
         return () => {
             cancelAnimationFrame(animationFrameId);
             window.removeEventListener('resize', resizeCanvas);
-            if (canvas) {
-                canvas.removeEventListener('mousemove', handleMouseMove);
-                canvas.removeEventListener('mouseleave', handleMouseLeave);
-            }
+            // Remove listeners from the window
+            window.removeEventListener('mousemove', handleMouseMove);
+            window.removeEventListener('mouseout', handleMouseLeave);
         };
-    }, [isDarkMode]);
+    }, [isDarkMode, handleMouseMove, handleMouseLeave]);
 
-    return <canvas ref={canvasRef} className="absolute top-0 left-0 w-full h-full z-0" />;
+    return <canvas ref={canvasRef} className="fixed top-0 left-0 w-full h-full z-0" />;
 };
-
 const HomePage = ({ setCurrentPage, onSelectPuzzle, isDarkMode, dailyPuzzle }) => {
     return (
-        <div className="bg-white dark:bg-black">
-            <main>
-                <div className="relative py-20 sm:py-28 text-center overflow-hidden">
-                    <InteractiveGridBackground isDarkMode={isDarkMode} />
-                    <div className="relative container mx-auto px-4 sm:px-6 lg:px-8 z-10">
+        <div className="bg-white dark:bg-black relative">
+            <div className="fixed inset-0 z-0">
+                <InteractiveGridBackground isDarkMode={isDarkMode} />
+            </div>
+            <main className="relative z-10">
+                <div className="py-20 sm:py-28 text-center overflow-hidden">
+                    <div className="relative container mx-auto px-4 sm:px-6 lg:px-8">
                         <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-gray-900 dark:text-white tracking-tight">
                             Solve Puzzles, Sharpen Your Mind
                         </h1>
@@ -354,7 +408,7 @@ const DashboardPage = ({ user, puzzles, onSelectPuzzle, setCurrentPage }) => {
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
                             <div><p className="text-2xl font-bold text-black dark:text-white">{user.puzzlesSolved}</p><p className="text-sm text-gray-500 dark:text-gray-400">Puzzles Solved</p></div>
                             <div><p className="text-2xl font-bold text-black dark:text-white">{user.currentStreak}</p><p className="text-sm text-gray-500 dark:text-gray-400">Current Streak</p></div>
-                            <div><p className="text-2xl font-bold text-black dark:text-white">{user.avgTime}</p><p className="text-sm text-gray-500 dark:text-gray-400">Avg Time</p></div>
+                            <div><p className="2xl font-bold text-black dark:text-white">{user.avgTime}</p><p className="text-sm text-gray-500 dark:text-gray-400">Avg Time</p></div>
                             <div><p className="text-2xl font-bold text-black dark:text-white">{user.dailyStreak}</p><p className="text-sm text-gray-500 dark:text-gray-400">Daily Streak</p></div>
                         </div>
                         <h4 className="font-semibold text-gray-800 dark:text-gray-200 mt-8 mb-4">Difficulty Breakdown</h4>
@@ -817,7 +871,7 @@ export default function App() {
             case 'puzzles':
                 return <PuzzlesPage puzzles={puzzles} onSelectPuzzle={handleSelectPuzzle} />;
             case 'dashboard':
-                return isAuthenticated && user ? <DashboardPage user={user} puzzles={puzzles} onSelectPuzzle={handleSelectPuzzle} setCurrentPage={setCurrentPage} /> : <AuthPage isSignIn={true} setCurrentPage={setCurrentPage} handleLogin={handleLogin} />;
+                return isAuthenticated && user ? <DashboardPage user={user} puzzles={puzzles} onSelectPuzzle={handleSelectPuzzle} setCurrentPage={setCurrentPage} isDarkMode={isDarkMode} /> : <AuthPage isSignIn={true} setCurrentPage={setCurrentPage} handleLogin={handleLogin} />;
             case 'admin':
                 return isAdmin ? <AdminPage puzzles={puzzles} onAddPuzzle={handleAddPuzzle} onDeletePuzzle={handleDeletePuzzle} /> : <RestrictedPage />;
             case 'signin':
