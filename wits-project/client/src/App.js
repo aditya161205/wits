@@ -1,19 +1,12 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import axios from 'axios';
 
-// --- ICONS ---
-const LogoIcon = ({ isDarkMode }) => ( <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg"> <path d="M16 2.66663C8.63636 2.66663 2.66669 8.63632 2.66669 16C2.66669 23.3636 8.63636 29.3333 16 29.3333C23.3637 29.3333 29.3334 23.3636 29.3334 16C29.3334 8.63632 23.3637 2.66663 16 2.66663Z" fill={isDarkMode ? "#1F2937" : "#F3F4F6"}/> <path d="M19.68 12.32C19.68 11.4329 19.3365 10.5818 18.7276 9.9729C18.1187 9.36399 17.2676 9.02048 16.38 9.02048H12.32V16.38H16.38C17.2676 16.38 18.1187 16.0365 18.7276 15.4276C19.3365 14.8187 19.68 13.9676 19.68 13.08V12.32Z" fill={isDarkMode ? "#9CA3AF" : "#4B5563"}/> <path d="M16.38 16.38H12.32V23.74H16.38C18.42 23.74 20.06 22.1 20.06 20.06C20.06 18.02 18.42 16.38 16.38 16.38Z" fill={isDarkMode ? "#F9FAFB" : "#1F2937"}/> </svg> );
-const SunIcon = () => ( <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"> <circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line> </svg> );
-const MoonIcon = () => ( <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"> <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path> </svg> );
-const UserGroupIcon = () => ( <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"> <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path> </svg> );
-const TrophyIcon = () => ( <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"> <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"></path><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"></path><path d="M4 22h16"></path><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"></path><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"></path><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"></path> </svg> );
-const ClockIcon = () => ( <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"> <circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline> </svg> );
-const CalendarIcon = () => ( <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-500 dark:text-gray-400"> <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line> </svg> );
-const BoltIcon = () => ( <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-white dark:text-black"> <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon> </svg> );
-
 // --- API HELPER ---
 const api = axios.create({
-    baseURL: 'http://localhost:5001/api',
+    baseURL: process.env.REACT_APP_API_URL || 'http://localhost:5001/api',
+    headers: {
+        'Content-Type': 'application/json',
+    },
 });
 
 const setAuthToken = (token) => {
@@ -26,8 +19,27 @@ const setAuthToken = (token) => {
     }
 };
 
-// --- NEW COMPONENT ---
-const PuzzleHeatmap = ({ recentlySolved, isDarkMode }) => {
+
+// --- ICONS ---
+const LogoIcon = ({ isDarkMode }) => ( <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg"> <path d="M16 2.66663C8.63636 2.66663 2.66669 8.63632 2.66669 16C2.66669 23.3636 8.63636 29.3333 16 29.3333C23.3637 29.3333 29.3334 23.3636 29.3334 16C29.3334 8.63632 23.3637 2.66663 16 2.66663Z" fill={isDarkMode ? "#1F2937" : "#F3F4F6"}/> <path d="M19.68 12.32C19.68 11.4329 19.3365 10.5818 18.7276 9.9729C18.1187 9.36399 17.2676 9.02048 16.38 9.02048H12.32V16.38H16.38C17.2676 16.38 18.1187 16.0365 18.7276 15.4276C19.3365 14.8187 19.68 13.9676 19.68 13.08V12.32Z" fill={isDarkMode ? "#9CA3AF" : "#4B5563"}/> <path d="M16.38 16.38H12.32V23.74H16.38C18.42 23.74 20.06 22.1 20.06 20.06C20.06 18.02 18.42 16.38 16.38 16.38Z" fill={isDarkMode ? "#F9FAFB" : "#1F2937"}/> </svg> );
+const SunIcon = () => ( <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"> <circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line> </svg> );
+const MoonIcon = () => ( <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"> <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path> </svg> );
+const UserGroupIcon = () => ( <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"> <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path> </svg> );
+const XPIcon = () => ( <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 1.5l3.09 6.26L22.5 9l-5.41 5.24L18.18 21L12 17.5L5.82 21l1.09-6.76L1.5 9l7.41-1.24L12 1.5z"></path></svg> );
+const ClockIcon = () => ( <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"> <circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline> </svg> );
+const CalendarIcon = () => ( <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-500 dark:text-gray-400"> <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line> </svg> );
+const BoltIcon = () => ( <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-white dark:text-black"> <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon> </svg> );
+
+// --- HELPERS ---
+const toLocalDateString = (date) => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+};
+
+// --- PUZZLE HEATMAP COMPONENT ---
+const PuzzleHeatmap = ({ solveLog, isDarkMode }) => {
     const today = new Date();
     const days = [];
     for (let i = 0; i < 365; i++) {
@@ -36,50 +48,48 @@ const PuzzleHeatmap = ({ recentlySolved, isDarkMode }) => {
         days.push(date);
     }
 
-    const solvedDates = recentlySolved.reduce((acc, puzzle) => {
-        const date = new Date(puzzle.dateSolved || puzzle.date).toISOString().split('T')[0];
-        acc[date] = (acc[date] || 0) + 1;
+    // build a map of date -> count (from solveLog)
+    const solvedDates = (solveLog || []).reduce((acc, entry) => {
+        acc[entry.date] = entry.count;
         return acc;
     }, {});
 
-    const maxSolved = Math.max(...Object.values(solvedDates), 0);
     const colorMap = (count) => {
         if (count === 0) return isDarkMode ? 'bg-gray-800' : 'bg-gray-200';
-        if (count === 1) return isDarkMode ? 'bg-green-800' : 'bg-green-400';
-        if (count === 2) return isDarkMode ? 'bg-green-700' : 'bg-green-500';
-        if (count >= 3) return isDarkMode ? 'bg-green-600' : 'bg-green-600';
+        if (count >= 1) return isDarkMode ? 'bg-green-600' : 'bg-green-500'; 
     };
 
     return (
-        <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl p-6">
-            <h4 className="font-semibold text-gray-800 dark:text-gray-200 mb-4">Solving Streak</h4>
-            <div className="flex justify-end text-sm text-gray-500 dark:text-gray-400 mb-2">
-                Less <div className="w-4 h-4 rounded ml-1 mr-0.5 bg-gray-200 dark:bg-gray-800"></div>
-                <div className="w-4 h-4 rounded mx-0.5 bg-green-400 dark:bg-green-800"></div>
-                <div className="w-4 h-4 rounded mx-0.5 bg-green-500 dark:bg-green-700"></div>
-                <div className="w-4 h-4 rounded mx-0.5 bg-green-600 dark:bg-green-600"></div>
-                More
+        <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl p-6 h-full">
+            <div className="flex justify-between items-center mb-4">
+                <h4 className="font-semibold text-gray-800 dark:text-gray-200">Solving Streak</h4>
+                <div className="flex justify-end text-xs text-gray-500 dark:text-gray-400 items-center">
+                    Less
+                    <div className="w-3 h-3 rounded-sm ml-1 mr-0.5 bg-gray-200 dark:bg-gray-800"></div>
+                    <div className="w-3 h-3 rounded-sm mx-0.5 bg-green-500 dark:bg-green-600"></div>
+                    More
+                </div>
             </div>
-            <div className="grid grid-flow-col grid-rows-7 gap-1">
-                {days.reverse().map((day) => {
-                    const dateString = day.toISOString().split('T')[0];
-                    const solvedCount = solvedDates[dateString] || 0;
-                    return (
-                        <div
-                            key={day.toISOString()}
-                            className={`w-4 h-4 rounded transition-colors ${colorMap(solvedCount)}`}
-                            title={`${solvedCount} puzzles solved on ${day.toDateString()}`}
-                        />
-                    );
-                })}
+            <div className="overflow-x-auto">
+                <div className="grid grid-flow-col grid-rows-7 gap-1 py-1">
+                    {days.reverse().map((day) => {
+                        const dateString = toLocalDateString(day);
+                        const solvedCount = solvedDates[dateString] || 0;
+                        return (
+                            <div
+                                key={day.toISOString()}
+                                className={`w-3 h-3 rounded-sm transition-colors ${colorMap(solvedCount)}`}
+                                title={`${solvedCount} puzzle(s) solved on ${day.toDateString()}`}
+                            />
+                        );
+                    })}
+                </div>
             </div>
         </div>
     );
 };
 
-
-// --- COMPONENTS ---
-
+// --- UI COMPONENTS ---
 const Navbar = ({ currentPage, setCurrentPage, isAdmin, isDarkMode, toggleDarkMode, isAuthenticated, handleLogout }) => {
     const navLinks = ['Home', 'Puzzles'];
     if (isAuthenticated) {
@@ -126,7 +136,7 @@ const Navbar = ({ currentPage, setCurrentPage, isAdmin, isDarkMode, toggleDarkMo
     );
 };
 
-const PuzzleCard = ({ puzzle, onSelectPuzzle }) => {
+const PuzzleCard = ({ puzzle, onSelectPuzzle, isSolved }) => {
     const difficultyStyles = {
         Easy: 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400',
         Medium: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400',
@@ -134,12 +144,12 @@ const PuzzleCard = ({ puzzle, onSelectPuzzle }) => {
     };
 
     return (
-        <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl p-6 flex flex-col justify-between transition-all hover:shadow-lg hover:-translate-y-1">
+        <div className={`bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl p-6 flex flex-col justify-between transition-all hover:shadow-lg hover:-translate-y-1 ${isSolved ? 'opacity-60' : ''}`}>
             <div>
                 <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center gap-2">
                         <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${difficultyStyles[puzzle.difficulty]}`}>{puzzle.difficulty}</span>
-                        {puzzle.featured && <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-gray-200 text-gray-800 dark:bg-gray-700 dark:text-gray-200">Featured</span>}
+                        {isSolved && <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400">Solved</span>}
                     </div>
                 </div>
                 <h3 className="text-lg font-bold text-gray-900 dark:text-white">{puzzle.title}</h3>
@@ -147,18 +157,18 @@ const PuzzleCard = ({ puzzle, onSelectPuzzle }) => {
                 <p className="text-sm text-gray-600 dark:text-gray-300 mt-2 h-10 line-clamp-2">{puzzle.question}</p>
             </div>
             <div className="mt-6">
-                <div className="flex justify-between items-center text-sm text-gray-500 dark:text-gray-400 mb-4">
+                 <div className="flex justify-between items-center text-sm text-gray-500 dark:text-gray-400 mb-4">
                     <div className="flex items-center gap-2">
                         <UserGroupIcon />
                         <span className="font-semibold text-gray-800 dark:text-gray-200">{puzzle.solvedCount?.toLocaleString()}</span> Solved
                     </div>
-                    <div className="flex items-center gap-2">
-                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
-                        <span className="font-semibold text-gray-800 dark:text-gray-200">{puzzle.successRate}%</span> Success Rate
+                     <div className="flex items-center gap-2">
+                        <XPIcon />
+                        <span className="font-semibold text-gray-800 dark:text-gray-200">{puzzle.xpReward || 100}</span> XP
                     </div>
                 </div>
                 <button onClick={() => onSelectPuzzle(puzzle)} className={`w-full text-center py-2.5 mt-4 rounded-lg font-semibold transition bg-black hover:bg-gray-800 text-white dark:bg-white dark:text-black dark:hover:bg-gray-200`}>
-                    Start Puzzle
+                    {isSolved ? 'View Puzzle' : 'Start Puzzle'}
                 </button>
             </div>
         </div>
@@ -170,7 +180,7 @@ const InteractiveGridBackground = ({ isDarkMode }) => {
     const mouse = useRef({ x: -1000, y: -1000, radius: 80 });
 
     const handleMouseMove = useCallback((e) => {
-        // Adjust mouse position relative to the canvas
+        if (!canvasRef.current) return;
         const rect = canvasRef.current.getBoundingClientRect();
         mouse.current.x = e.clientX - rect.left;
         mouse.current.y = e.clientY - rect.top;
@@ -192,24 +202,28 @@ const InteractiveGridBackground = ({ isDarkMode }) => {
         };
 
         window.addEventListener('resize', resizeCanvas);
-        // Listen for mouse events on the window to capture movement anywhere on the page
         window.addEventListener('mousemove', handleMouseMove);
         window.addEventListener('mouseout', handleMouseLeave);
         resizeCanvas();
 
-        const dots = [];
+        let dots = [];
         const dotSpacing = 30;
         const dotSize = 2;
-        const dotColor = isDarkMode ? 'rgba(107, 114, 128, 0.5)' : 'rgba(209, 213, 219, 0.7)';
-
-        for (let x = dotSpacing / 2; x < canvas.width; x += dotSpacing) {
-            for (let y = dotSpacing / 2; y < canvas.height; y += dotSpacing) {
-                dots.push({ x: x, y: y, ox: x, oy: y });
+        
+        const createDots = () => {
+            dots = [];
+            for (let x = dotSpacing / 2; x < canvas.width; x += dotSpacing) {
+                for (let y = dotSpacing / 2; y < canvas.height; y += dotSpacing) {
+                    dots.push({ x: x, y: y, ox: x, oy: y });
+                }
             }
         }
+        createDots();
+
 
         const animate = () => {
             if (!ctx) return;
+            const dotColor = isDarkMode ? 'rgba(107, 114, 128, 0.5)' : 'rgba(209, 213, 219, 0.7)';
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             dots.forEach(dot => {
                 const dx = mouse.current.x - dot.x;
@@ -238,7 +252,6 @@ const InteractiveGridBackground = ({ isDarkMode }) => {
         return () => {
             cancelAnimationFrame(animationFrameId);
             window.removeEventListener('resize', resizeCanvas);
-            // Remove listeners from the window
             window.removeEventListener('mousemove', handleMouseMove);
             window.removeEventListener('mouseout', handleMouseLeave);
         };
@@ -246,6 +259,9 @@ const InteractiveGridBackground = ({ isDarkMode }) => {
 
     return <canvas ref={canvasRef} className="fixed top-0 left-0 w-full h-full z-0" />;
 };
+
+// --- PAGE COMPONENTS ---
+
 const HomePage = ({ setCurrentPage, onSelectPuzzle, isDarkMode, dailyPuzzle }) => {
     return (
         <div className="bg-white dark:bg-black relative">
@@ -308,7 +324,7 @@ const HomePage = ({ setCurrentPage, onSelectPuzzle, isDarkMode, dailyPuzzle }) =
     );
 };
 
-const PuzzlesPage = ({ puzzles, onSelectPuzzle }) => {
+const PuzzlesPage = ({ puzzles, onSelectPuzzle, user }) => {
     const [difficulty, setDifficulty] = useState('All');
     const [category, setCategory] = useState('All');
 
@@ -317,6 +333,8 @@ const PuzzlesPage = ({ puzzles, onSelectPuzzle }) => {
         const categoryMatch = category === 'All' || p.category === category;
         return difficultyMatch && categoryMatch;
     });
+    
+    const solvedPuzzleIds = new Set(user?.recentlySolved?.map(p => p.puzzleId || p.id) || []);
 
     return (
         <div className="bg-gray-50 dark:bg-black min-h-screen">
@@ -355,7 +373,7 @@ const PuzzlesPage = ({ puzzles, onSelectPuzzle }) => {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                     {filteredPuzzles.length > 0 ? filteredPuzzles.map(puzzle => (
-                        <PuzzleCard key={puzzle.id} puzzle={puzzle} onSelectPuzzle={onSelectPuzzle} />
+                        <PuzzleCard key={puzzle.id} puzzle={puzzle} onSelectPuzzle={onSelectPuzzle} isSolved={solvedPuzzleIds.has(puzzle.id)} />
                     )) : <p className="text-gray-500 md:col-span-3 text-center">No puzzles found. Try adjusting your filters or add a new puzzle in the admin panel!</p>}
                 </div>
             </div>
@@ -363,19 +381,7 @@ const PuzzlesPage = ({ puzzles, onSelectPuzzle }) => {
     );
 };
 
-// UPDATED DashboardPage Component
-const DashboardPage = ({ user, puzzles, onSelectPuzzle, setCurrentPage }) => {
-    
-    const handleRecentClick = (puzzleId) => {
-        const puzzleToOpen = puzzles.find(p => p.id === puzzleId);
-        if (puzzleToOpen) {
-            onSelectPuzzle(puzzleToOpen);
-        } else {
-            alert("Could not find this puzzle. It may have been deleted.");
-            setCurrentPage('puzzles');
-        }
-    };
-
+const DashboardPage = ({ user, puzzles, onSelectPuzzle, setCurrentPage, isDarkMode }) => {
     return (
         <div className="bg-gray-50 dark:bg-black min-h-screen">
             <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
@@ -387,31 +393,20 @@ const DashboardPage = ({ user, puzzles, onSelectPuzzle, setCurrentPage }) => {
                 </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
-                    <div className="lg:col-span-1 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl p-6 flex flex-col items-center text-center">
-                        <TrophyIcon />
-                        <p className="text-sm text-gray-500 dark:text-gray-400">Level {user.level}</p>
-                        <h3 className="text-2xl font-bold text-gray-800 dark:text-gray-200">Puzzle Master</h3>
-                        <div className="w-full my-4">
-                            <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400 mb-1">
-                                <span>XP Progress</span>
-                                <span>{user.xp} / {user.xpTotal}</span>
-                            </div>
-                            <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2.5">
-                                <div className="bg-black dark:bg-white h-2.5 rounded-full" style={{ width: `${(user.xp / user.xpTotal) * 100}%` }}></div>
-                            </div>
-                        </div>
-                        <p className="text-xs text-gray-500 dark:text-gray-400">{user.xpTotal - user.xp} XP to next level</p>
+                    <div className="lg:col-span-1 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl p-6 flex flex-col items-center text-center justify-center">
+                        <XPIcon />
+                        <p className="text-5xl font-bold text-gray-800 dark:text-gray-200 my-2">{user.xp}</p>
+                        <p className="text-sm text-gray-500 dark:text-gray-400">Total XP Earned</p>
                     </div>
 
-                    <div className="lg:col-span-2 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl p-6">
-                        <h4 className="font-semibold text-gray-800 dark:text-gray-200 mb-4">Solving Statistics</h4>
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
-                            <div><p className="text-2xl font-bold text-black dark:text-white">{user.puzzlesSolved}</p><p className="text-sm text-gray-500 dark:text-gray-400">Puzzles Solved</p></div>
-                            <div><p className="text-2xl font-bold text-black dark:text-white">{user.currentStreak}</p><p className="text-sm text-gray-500 dark:text-gray-400">Current Streak</p></div>
-                            <div><p className="2xl font-bold text-black dark:text-white">{user.avgTime}</p><p className="text-sm text-gray-500 dark:text-gray-400">Avg Time</p></div>
-                            <div><p className="text-2xl font-bold text-black dark:text-white">{user.dailyStreak}</p><p className="text-sm text-gray-500 dark:text-gray-400">Daily Streak</p></div>
-                        </div>
-                        <h4 className="font-semibold text-gray-800 dark:text-gray-200 mt-8 mb-4">Difficulty Breakdown</h4>
+                    <div className="lg:col-span-2">
+                        <PuzzleHeatmap solveLog={user.solveLog} isDarkMode={isDarkMode} />
+                    </div>
+                </div>
+
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    <div className="lg:col-span-3 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl p-6">
+                        <h4 className="font-semibold text-gray-800 dark:text-gray-200 mb-4">Difficulty Breakdown</h4>
                         <div className="flex items-center gap-4">
                             <div className="flex-1 text-center p-4 bg-green-50 dark:bg-green-900/20 rounded-lg">
                                 <p className="text-xl font-bold text-green-700 dark:text-green-400">{user.difficultyBreakdown.easy}</p>
@@ -428,41 +423,18 @@ const DashboardPage = ({ user, puzzles, onSelectPuzzle, setCurrentPage }) => {
                         </div>
                     </div>
                 </div>
-
-                <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl p-6">
-                    <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">Recently Solved</h2>
-                    {user.recentlySolved?.length > 0 ? (
-                        <div className="space-y-4">
-                            {user.recentlySolved.map(puzzle => (
-                                <button key={puzzle.puzzleId} onClick={() => handleRecentClick(puzzle.puzzleId)} className="w-full text-left flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-800/50 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
-                                    <div>
-                                        <h3 className="font-semibold text-gray-800 dark:text-gray-200">{puzzle.title}</h3>
-                                        <p className="text-sm text-gray-500 dark:text-gray-400">{puzzle.category}</p>
-                                    </div>
-                                    <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${
-                                        puzzle.difficulty === 'Easy' ? 'bg-green-100 text-green-800' :
-                                        puzzle.difficulty === 'Medium' ? 'bg-yellow-100 text-yellow-800' :
-                                        'bg-red-100 text-red-800'
-                                    }`}>{puzzle.difficulty}</span>
-                                </button>
-                            ))}
-                        </div>
-                    ) : (
-                        <p className="text-gray-500 dark:text-gray-400">You haven't solved any puzzles yet. Get started!</p>
-                    )}
-                </div>
             </div>
         </div>
     );
 };
 
-const PuzzlePage = ({ puzzle, onPuzzleSolved, deductXp }) => {
+const PuzzlePage = ({ puzzle, user, onPuzzleSolved, onDeductXp, onNavigateAway }) => {
     const [timeRemaining, setTimeRemaining] = useState(puzzle.timeLimit * 60);
     const [revealedHints, setRevealedHints] = useState([]);
     const [userAnswer, setUserAnswer] = useState('');
     const [submissionStatus, setSubmissionStatus] = useState('idle');
     const [isSolutionRevealed, setIsSolutionRevealed] = useState(false);
-
+    
     useEffect(() => {
         setTimeRemaining(puzzle.timeLimit * 60);
         setRevealedHints([]);
@@ -482,42 +454,59 @@ const PuzzlePage = ({ puzzle, onPuzzleSolved, deductXp }) => {
         return `${minutes}:${remainingSeconds < 10 ? '0' : ''}${remainingSeconds}`;
     };
 
-    const revealHint = () => {
+    const revealHint = async () => {
         if (puzzle.hints && revealedHints.length < puzzle.hints.length) {
+            await onDeductXp(10);
             setRevealedHints([...revealedHints, puzzle.hints[revealedHints.length]]);
-            deductXp(10);
         }
     };
     
-    const revealSolution = () => {
+    const revealSolution = async () => {
         if (!isSolutionRevealed) {
+            await onDeductXp(50);
             setIsSolutionRevealed(true);
-            deductXp(50);
         }
     };
-
     const handleAnswerSubmit = async (e) => {
         e.preventDefault();
-        if(!userAnswer) return;
+        if (!userAnswer) return;
+    
+        const isAlreadySolved = user.recentlySolved.some(
+            p => (p.puzzleId || p.id) === puzzle.id
+        );
+    
+        if (isAlreadySolved) {
+            // ✅ LOCAL CHECK ONLY
+            if (userAnswer.trim().toLowerCase() === puzzle.answer.trim().toLowerCase()) {
+                setSubmissionStatus('correct_resolved');
+            } else {
+                setSubmissionStatus('incorrect');
+                setUserAnswer('');
+            }
+            return; // <-- stop here, no API call
+        }
+    
+        // ✅ First time solves still use backend
         try {
             const res = await api.post(`/puzzles/${puzzle.id}/solve`, { userAnswer });
-            setSubmissionStatus('correct');
-            onPuzzleSolved(res.data.user, res.data.puzzle);
-        } catch (err) {
+            setSubmissionStatus('correct_new');
+            onPuzzleSolved(puzzle, res.data.user, false);
+        } catch (error) {
+            console.error("Answer submission failed:", error.response?.data?.msg || error.message);
             setSubmissionStatus('incorrect');
-            setUserAnswer('');
         }
     };
 
     const handleTryAgain = () => setSubmissionStatus('idle');
-    const handleNextPuzzle = () => onPuzzleSolved(null, null, true);
+    const handleNextPuzzle = () => onNavigateAway();
 
     const difficultyStyles = { Easy: 'bg-green-100 text-green-800', Medium: 'bg-yellow-100 text-yellow-800', Hard: 'bg-red-100 text-red-800' };
+    const isInputDisabled = submissionStatus === 'correct_new' || submissionStatus === 'correct_resolved';
 
     return (
         <div className="bg-gray-50 dark:bg-black min-h-screen py-12">
             <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-                <button onClick={() => onPuzzleSolved(null, null, true)} className="flex items-center gap-2 text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white mb-8">
+                <button onClick={onNavigateAway} className="flex items-center gap-2 text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white mb-8">
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
                     Back to Puzzles
                 </button>
@@ -532,18 +521,23 @@ const PuzzlePage = ({ puzzle, onPuzzleSolved, deductXp }) => {
                             <h2 className="text-xl font-semibold text-gray-800 dark:text-gray-200 mb-4">Your Answer</h2>
                             <form onSubmit={handleAnswerSubmit}>
                                 <div className="flex flex-col sm:flex-row gap-4">
-                                    <input type="text" placeholder="Enter your answer..." value={userAnswer} onChange={(e) => setUserAnswer(e.target.value)} disabled={submissionStatus === 'correct'} className="flex-grow px-4 py-3 bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-black dark:focus:ring-white text-gray-800 dark:text-gray-200 disabled:opacity-50" />
-                                    <button type="submit" disabled={submissionStatus === 'correct'} className="px-6 py-3 text-base font-semibold text-white bg-black rounded-lg hover:bg-gray-800 dark:bg-white dark:text-black dark:hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed">
+                                    <input type="text" placeholder="Enter your answer..." value={userAnswer} onChange={(e) => setUserAnswer(e.target.value)} disabled={isInputDisabled} className="flex-grow px-4 py-3 bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-black dark:focus:ring-white text-gray-800 dark:text-gray-200 disabled:opacity-50" />
+                                    <button type="submit" disabled={isInputDisabled} className="px-6 py-3 text-base font-semibold text-white bg-black rounded-lg hover:bg-gray-800 dark:bg-white dark:text-black dark:hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed">
                                         Submit Answer
                                     </button>
                                 </div>
                             </form>
-                            {submissionStatus === 'correct' && (
+                            
+                            {(submissionStatus === 'correct_new' || submissionStatus === 'correct_resolved') && (
                                 <div className="mt-4 p-4 rounded-lg bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 text-center">
                                     <p className="font-semibold">Correct!</p>
+                                    {submissionStatus === 'correct_resolved' && (
+                                        <p className="text-sm mt-1">You've solved this one before. Stats were not updated.</p>
+                                    )}
                                     <button onClick={handleNextPuzzle} className="mt-2 px-4 py-2 text-sm font-medium text-white bg-green-600 rounded-lg hover:bg-green-700">Next Puzzle</button>
                                 </div>
                             )}
+
                              {submissionStatus === 'incorrect' && (
                                 <div className="mt-4 p-4 rounded-lg bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 text-center">
                                     <p className="font-semibold">Incorrect, please try again.</p>
@@ -558,7 +552,6 @@ const PuzzlePage = ({ puzzle, onPuzzleSolved, deductXp }) => {
                             <div className="space-y-3 text-sm">
                                 <div className="flex justify-between items-center"> <span className="text-gray-500 dark:text-gray-400">Difficulty</span> <span className={`font-semibold px-2 py-0.5 rounded-full ${difficultyStyles[puzzle.difficulty]}`}>{puzzle.difficulty}</span> </div>
                                 <div className="flex justify-between items-center"> <span className="text-gray-500 dark:text-gray-400">Category</span> <span className="font-semibold text-gray-800 dark:text-gray-200">{puzzle.category}</span> </div>
-                                <div className="flex justify-between items-center"> <span className="text-gray-500 dark:text-gray-400">Success Rate</span> <span className="font-semibold text-gray-800 dark:text-gray-200">{puzzle.successRate}%</span> </div>
                             </div>
                         </div>
                         <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl p-6 text-center">
@@ -584,9 +577,10 @@ const PuzzlePage = ({ puzzle, onPuzzleSolved, deductXp }) => {
     );
 };
 
-const AuthPage = ({ isSignIn, setCurrentPage, handleLogin }) => {
+const AuthPage = ({ isSignIn, setCurrentPage, handleAuth }) => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [confirmPassword, setConfirmPassword] = useState('');
 
     const handleSubmit = (e) => {
         e.preventDefault();
@@ -594,7 +588,11 @@ const AuthPage = ({ isSignIn, setCurrentPage, handleLogin }) => {
             alert("Please fill in all fields.");
             return;
         }
-        handleLogin(email, password, !isSignIn);
+        if (!isSignIn && password !== confirmPassword) {
+            alert("Passwords do not match.");
+            return;
+        }
+        handleAuth({ email, password }, isSignIn);
     };
 
     return (
@@ -617,9 +615,12 @@ const AuthPage = ({ isSignIn, setCurrentPage, handleLogin }) => {
                             <input type="password" name="password" id="password" value={password} onChange={e => setPassword(e.target.value)} required className="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-md shadow-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-200" />
                         </div>
                         {!isSignIn && (
-                            <div>
-                                <label htmlFor="confirm-password" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Confirm Password</label>
-                                <input type="password" name="confirm-password" id="confirm-password" required className="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-md shadow-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-200" />
+                             <div>
+                                <label htmlFor="confirm-password"
+                                    className="block text-sm font-medium text-gray-700 dark:text-gray-300">Confirm
+                                    Password</label>
+                                <input type="password" name="confirm-password" id="confirm-password" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} required
+                                    className="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-md shadow-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-200" />
                             </div>
                         )}
                         <div>
@@ -640,7 +641,6 @@ const AuthPage = ({ isSignIn, setCurrentPage, handleLogin }) => {
     );
 };
 
-// UPDATED AdminPage Component
 const AdminPage = ({ puzzles, onAddPuzzle, onDeletePuzzle }) => {
     const [newPuzzle, setNewPuzzle] = useState({ title: '', question: '', answer: '', difficulty: 'Easy', category: 'Logic', hints: '', timeLimit: 5, featured: false });
 
@@ -728,7 +728,7 @@ const RestrictedPage = () => (
 const Footer = () => (
     <footer className="bg-gray-100 dark:bg-gray-950/50 border-t border-gray-200 dark:border-gray-800">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-4 text-center text-sm text-gray-500 dark:text-gray-400">
-            <p>&copy; 2025 Wits. All rights reserved.</p>
+            <p>&copy; {new Date().getFullYear()} Wits. All rights reserved.</p>
         </div>
     </footer>
 );
@@ -740,63 +740,60 @@ export default function App() {
     const [isDarkMode, setIsDarkMode] = useState(false);
     
     const [isAuthenticated, setIsAuthenticated] = useState(false);
-    const [isAdmin, setIsAdmin] = useState(false);
-    const [user, setUser] = useState(null);
+    const [currentUser, setCurrentUser] = useState(null);
     const [loading, setLoading] = useState(true);
-
+    
     const [puzzles, setPuzzles] = useState([]);
 
-    const handleLogout = useCallback(() => {
-        setAuthToken(null);
-        setUser(null);
-        setIsAuthenticated(false);
-        setIsAdmin(false);
-        setCurrentPage('home');
-    }, []);
-
     const loadUser = useCallback(async () => {
-        try {
-            const res = await api.get('/auth');
-            setUser(res.data);
-            setIsAuthenticated(true);
-            setIsAdmin(res.data.isAdmin);
-        } catch (err) {
-            handleLogout();
-        } finally {
-            setLoading(false);
+        if (localStorage.token) {
+            setAuthToken(localStorage.token);
+            try {
+                const res = await api.get('/auth');
+                setCurrentUser(res.data);
+                setIsAuthenticated(true);
+            } catch (err) {
+                console.error("Auth token invalid", err);
+                setAuthToken(null);
+            }
         }
-    }, [handleLogout]);
+        setLoading(false);
+    }, []);
 
     const fetchPuzzles = useCallback(async () => {
         try {
             const res = await api.get('/puzzles');
-            const puzzlesWithId = res.data.map(p => ({...p, id: p._id }));
-            setPuzzles(puzzlesWithId);
+            const formattedPuzzles = res.data.map(p => ({ ...p, id: p._id }));
+            setPuzzles(formattedPuzzles);
         } catch (err) {
-            console.error("Error fetching puzzles", err);
+            console.error("Failed to fetch puzzles", err);
         }
     }, []);
 
     useEffect(() => {
-        const token = localStorage.getItem('token');
-        if (token) {
-            setAuthToken(token);
-            loadUser();
-        } else {
-            setLoading(false);
-        }
+        loadUser();
         fetchPuzzles();
     }, [loadUser, fetchPuzzles]);
 
-    const handleLogin = async (email, password, isRegister = false) => {
-        const endpoint = isRegister ? '/auth/register' : '/auth/login';
+
+    const handleLogout = () => {
+        setAuthToken(null);
+        setIsAuthenticated(false);
+        setCurrentUser(null);
+        setCurrentPage('home');
+    };
+
+    const handleAuth = async (credentials, isSignIn) => {
+        const endpoint = isSignIn ? '/auth/login' : '/auth/register';
         try {
-            const res = await api.post(endpoint, { email, password });
+            const res = await api.post(endpoint, credentials);
             setAuthToken(res.data.token);
             await loadUser();
             setCurrentPage('dashboard');
         } catch (err) {
-            alert(err.response?.data?.msg || "An error occurred.");
+            const errorMsg = err.response?.data?.msg || 'An error occurred.';
+            alert(`Authentication failed: ${errorMsg}`);
+            console.error(err.response);
         }
     };
     
@@ -809,41 +806,52 @@ export default function App() {
         setSelectedPuzzle(puzzle);
         setCurrentPage('puzzle');
     };
-
-    // UPDATED handlePuzzleSolved
-    const handlePuzzleSolved = (updatedUser, updatedPuzzle, navigate = false) => {
-        if (updatedUser) {
-            setUser(updatedUser);
-        }
-        if (updatedPuzzle) {
-            setPuzzles(prevPuzzles => 
-                prevPuzzles.map(p => p.id === updatedPuzzle._id ? {...p, solvedCount: updatedPuzzle.solvedCount } : p)
-            );
-        }
-        if (navigate) {
-            setSelectedPuzzle(null);
-            setCurrentPage('puzzles');
+    const handlePuzzleSolved = async (solvedPuzzle, updatedUserFromServer, isAlreadySolved) => {
+        setCurrentUser(prev => {
+            if (!prev) return updatedUserFromServer;
+    
+            const today = toLocalDateString(new Date());
+            let newSolveLog = prev.solveLog || [];
+            const entry = newSolveLog.find(e => e.date === today);
+    
+            if (entry) {
+                entry.count += 1;
+            } else {
+                newSolveLog = [...newSolveLog, { date: today, count: 1 }];
+            }
+    
+            return { ...updatedUserFromServer, solveLog: newSolveLog };
+        });
+    
+        if (!isAlreadySolved) {
+            await fetchPuzzles(); // still refresh puzzle stats
         }
     };
 
-    const handleAddPuzzle = async (newPuzzle) => {
+    const handleNavigateAway = () => {
+        setSelectedPuzzle(null);
+        setCurrentPage('puzzles');
+    };
+    
+    const handleAddPuzzle = async (newPuzzleData) => {
         try {
-            await api.post('/puzzles', newPuzzle);
-            await fetchPuzzles(); // Re-fetch to show the new puzzle
+            await api.post('/puzzles', newPuzzleData);
             alert('Puzzle added successfully!');
+            await fetchPuzzles();
         } catch (err) {
             alert('Failed to add puzzle.');
+            console.error(err);
         }
     };
     
-    // NEW handleDeletePuzzle function
     const handleDeletePuzzle = async (puzzleId) => {
         if (window.confirm("Are you sure you want to delete this puzzle?")) {
             try {
                 await api.delete(`/puzzles/${puzzleId}`);
-                await fetchPuzzles(); // Re-fetch puzzles after deletion
+                await fetchPuzzles();
             } catch (err) {
-                alert("Failed to delete puzzle.");
+                 alert('Failed to delete puzzle.');
+                 console.error(err);
             }
         }
     };
@@ -851,35 +859,45 @@ export default function App() {
     const handleDeductXp = async (amount) => {
         try {
             const res = await api.post('/users/deduct-xp', { amount });
-            setUser(res.data);
+            setCurrentUser(res.data);
         } catch (err) {
-            console.error("Failed to deduct XP", err);
+            console.error("Failed to deduct XP:", err);
         }
     };
 
     const renderPage = () => {
         if (loading) {
-            return <div className="min-h-screen flex items-center justify-center bg-white dark:bg-black text-black dark:text-white">Loading...</div>;
+            return <div className="min-h-screen bg-gray-50 dark:bg-black flex justify-center items-center"><p className="text-gray-500">Loading...</p></div>;
         }
+
+        const isAdmin = currentUser?.isAdmin || false;
+        
         if (currentPage === 'puzzle' && selectedPuzzle) {
-            return <PuzzlePage puzzle={selectedPuzzle} onPuzzleSolved={handlePuzzleSolved} deductXp={handleDeductXp} />;
+            return <PuzzlePage 
+                puzzle={selectedPuzzle}
+                user={currentUser}
+                onPuzzleSolved={handlePuzzleSolved} 
+                onDeductXp={handleDeductXp} 
+                onNavigateAway={handleNavigateAway}
+            />;
         }
+
         switch (currentPage) {
             case 'home':
                 const featuredPuzzle = puzzles.find(p => p.featured) || puzzles[0];
                 return <HomePage setCurrentPage={setCurrentPage} onSelectPuzzle={handleSelectPuzzle} isDarkMode={isDarkMode} dailyPuzzle={featuredPuzzle} />;
             case 'puzzles':
-                return <PuzzlesPage puzzles={puzzles} onSelectPuzzle={handleSelectPuzzle} />;
+                return <PuzzlesPage puzzles={puzzles} onSelectPuzzle={handleSelectPuzzle} user={currentUser} />;
             case 'dashboard':
-                return isAuthenticated && user ? <DashboardPage user={user} puzzles={puzzles} onSelectPuzzle={handleSelectPuzzle} setCurrentPage={setCurrentPage} isDarkMode={isDarkMode} /> : <AuthPage isSignIn={true} setCurrentPage={setCurrentPage} handleLogin={handleLogin} />;
+                return isAuthenticated && currentUser ? <DashboardPage user={currentUser} puzzles={puzzles} onSelectPuzzle={handleSelectPuzzle} setCurrentPage={setCurrentPage} isDarkMode={isDarkMode} /> : <AuthPage isSignIn={true} setCurrentPage={setCurrentPage} handleAuth={handleAuth} />;
             case 'admin':
                 return isAdmin ? <AdminPage puzzles={puzzles} onAddPuzzle={handleAddPuzzle} onDeletePuzzle={handleDeletePuzzle} /> : <RestrictedPage />;
             case 'signin':
-                return <AuthPage isSignIn={true} setCurrentPage={setCurrentPage} handleLogin={(email, pass) => handleLogin(email, pass, false)} />;
+                return <AuthPage isSignIn={true} setCurrentPage={setCurrentPage} handleAuth={handleAuth} />;
             case 'signup':
-                 return <AuthPage isSignIn={false} setCurrentPage={setCurrentPage} handleLogin={(email, pass) => handleLogin(email, pass, true)} />;
+                 return <AuthPage isSignIn={false} setCurrentPage={setCurrentPage} handleAuth={handleAuth} />;
             default:
-                return <HomePage setCurrentPage={setCurrentPage} onSelectPuzzle={handleSelectPuzzle} isDarkMode={isDarkMode} />;
+                return <HomePage setCurrentPage={setCurrentPage} onSelectPuzzle={handleSelectPuzzle} isDarkMode={isDarkMode} dailyPuzzle={puzzles[0]} />;
         }
     };
 
@@ -889,7 +907,7 @@ export default function App() {
                 <Navbar 
                     currentPage={currentPage} 
                     setCurrentPage={setCurrentPage} 
-                    isAdmin={isAdmin} 
+                    isAdmin={currentUser?.isAdmin || false} 
                     isDarkMode={isDarkMode} 
                     toggleDarkMode={() => setIsDarkMode(!isDarkMode)}
                     isAuthenticated={isAuthenticated}

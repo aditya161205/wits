@@ -1,3 +1,4 @@
+// server/routes/puzzles.js
 const express = require('express');
 const router = express.Router();
 const Puzzle = require('../models/Puzzle');
@@ -45,7 +46,7 @@ router.post('/:id/solve', auth, async (req, res) => {
 
         let isCorrect = false;
 
-        // First try numeric comparison
+        // Try numeric comparison first
         const numAnswer = parseFloat(puzzle.answer);
         const numUserAnswer = parseFloat(userAnswer);
 
@@ -53,7 +54,7 @@ router.post('/:id/solve', auth, async (req, res) => {
             isCorrect = numAnswer === numUserAnswer;
         }
 
-        // If not numeric, check case-insensitive string comparison
+        // Then text comparison (case insensitive)
         if (!isCorrect) {
             isCorrect = normalize(userAnswer) === normalize(puzzle.answer);
         }
@@ -62,39 +63,37 @@ router.post('/:id/solve', auth, async (req, res) => {
             return res.status(400).json({ msg: 'Incorrect answer' });
         }
 
-        // Ensure user fields exist
-        if (!Array.isArray(user.recentlySolved)) user.recentlySolved = [];
-        if (!user.difficultyBreakdown) user.difficultyBreakdown = {};
-
-        const alreadySolved = user.recentlySolved.some(
-            (p) => p?.puzzleId?.toString() === puzzle._id.toString()
+        // ✅ Check if puzzle already solved
+        const alreadySolved = user.solveLog?.some(
+            (entry) => entry.puzzleId?.toString() === puzzle._id.toString()
         );
 
+        // Award XP only if not solved before
         if (!alreadySolved) {
-            // Update puzzle stats
             puzzle.solvedCount = (puzzle.solvedCount || 0) + 1;
             await puzzle.save();
 
-            // Update user stats
             user.puzzlesSolved = (user.puzzlesSolved || 0) + 1;
             user.xp = (user.xp || 0) + 100;
 
             const diffKey = puzzle.difficulty?.toLowerCase() || 'easy';
             user.difficultyBreakdown[diffKey] = (user.difficultyBreakdown[diffKey] || 0) + 1;
-
-            // Update recently solved list
-            user.recentlySolved.unshift({
-                puzzleId: puzzle._id,
-                title: puzzle.title,
-                category: puzzle.category,
-                difficulty: puzzle.difficulty,
-            });
-            if (user.recentlySolved.length > 5) user.recentlySolved.pop();
-
-            await user.save();
         }
 
-        res.json({ msg: 'Correct!', user, puzzle });
+        // ✅ Always mark the solve in solveLog by DAY
+        const today = new Date();
+        const dateKey = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`;
+
+        const logEntry = user.solveLog.find(l => l.date === dateKey);
+        if (logEntry) {
+            logEntry.count += 1;
+        } else {
+            user.solveLog.push({ date: dateKey, count: 1 });
+        }
+
+        await user.save();
+
+        res.json({ msg: 'Correct!', user, puzzle, alreadySolved });
     } catch (err) {
         console.error('Solve Route Error:', err.message);
         res.status(500).send('Server Error');

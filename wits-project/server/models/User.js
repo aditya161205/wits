@@ -8,7 +8,7 @@ const UserSchema = new mongoose.Schema({
     level: { type: Number, default: 1 },
     xp: { type: Number, default: 0 },
     xpTotal: { type: Number, default: 250 },
-    puzzlesSolved: { type: Number, default: 0},
+    puzzlesSolved: { type: Number, default: 0 },
     currentStreak: { type: Number, default: 0 },
     avgTime: { type: String, default: '0:00' },
     dailyStreak: { type: Number, default: 0 },
@@ -17,13 +17,12 @@ const UserSchema = new mongoose.Schema({
         medium: { type: Number, default: 0 },
         hard: { type: Number, default: 0 },
     },
-    recentlySolved: [{
+    // ✅ New daily solve log for heatmap
+    solveLog: [{
         _id: false,
-        id: { type: mongoose.Schema.Types.ObjectId, ref: 'puzzle' },
-        title: String,
-        category: String,
-        difficulty: String
-    }],
+        date: { type: String, required: true }, // e.g. "2025-03-01"
+        count: { type: Number, default: 1 }
+    }]
 });
 
 module.exports = mongoose.model('user', UserSchema);
