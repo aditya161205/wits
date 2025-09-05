@@ -3,7 +3,7 @@ import axios from 'axios';
 
 // --- API HELPER ---
 const api = axios.create({
-    // ✅ CHANGED: Use a relative path so it works on Render and locally
+    
     baseURL: '/api', 
     headers: {
         'Content-Type': 'application/json',
@@ -310,7 +310,7 @@ const PuzzlesPage = ({ puzzles, onSelectPuzzle, user }) => {
     });
     
     // This check handles the backend's data inconsistency (id vs puzzleId)
-    // ✅ This logic is now perfect because the backend sends `recentlySolved` as [{ puzzleId: '...' }]
+
     const solvedPuzzleIds = new Set(user?.recentlySolved?.map(p => p.puzzleId) || []);
 
     return (

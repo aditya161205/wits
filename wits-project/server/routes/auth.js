@@ -9,7 +9,7 @@ const { check, validationResult } = require('express-validator');
 const User = require('../models/User');
 const auth = require('../middleware/auth');
 
-// ... (register, login, and GET /api/auth routes are unchanged) ...
+
 /**
  * @route   POST api/auth/register
  * @desc    Register new user
@@ -38,7 +38,7 @@ router.post(
       // Check if the user should be an admin
       const isAdmin = process.env.ADMIN_EMAIL && email.toLowerCase() === process.env.ADMIN_EMAIL.toLowerCase();
 
-      // ✅ SIMPLIFIED: New user object matches the updated schema
+
       user = new User({
         email: email.toLowerCase(),
         password,
@@ -46,7 +46,7 @@ router.post(
         puzzlesSolved: 0,
         xp: 0,
         difficultyBreakdown: { easy: 0, medium: 0, hard: 0 },
-        recentlySolved: [], // Correctly initialized as an empty array
+        recentlySolved: [],
       });
 
       const salt = await bcrypt.genSalt(10);
@@ -116,7 +116,7 @@ router.post(
  */
 router.get('/', auth, async (req, res) => {
   try {
-    // ✅ This will now fetch the user with the correctly structured `recentlySolved` array
+
     const user = await User.findById(req.user.id).select('-password');
     return res.json(user);
   } catch (err) {
@@ -126,7 +126,7 @@ router.get('/', auth, async (req, res) => {
 });
 
 
-// ✅ --- NEW ROUTES FOR PASSWORD RESET ---
+
 
 /**
  * @route   POST api/auth/forgot-password

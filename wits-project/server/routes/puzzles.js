@@ -5,7 +5,7 @@ const User = require('../models/User');
 const auth = require('../middleware/auth');
 
 // @route GET api/puzzles
-// No changes needed here
+
 router.get('/', async (req, res) => {
     try {
         const puzzles = await Puzzle.find().sort({ _id: -1 });
@@ -17,7 +17,7 @@ router.get('/', async (req, res) => {
 });
 
 // @route POST api/puzzles (Admin only)
-// No changes needed here
+
 router.post('/', auth, async (req, res) => {
     if (!req.user.isAdmin) return res.status(401).json({ msg: 'Not authorized' });
 
@@ -43,8 +43,7 @@ router.post('/:id/solve', auth, async (req, res) => {
 
         const { userAnswer } = req.body;
         if (!userAnswer) return res.status(400).json({ msg: 'Answer is required' });
-        
-        // ✅ FIX #1: Restored robust answer checking for both numbers and text.
+   
         const normalize = (val) => val?.toString().trim().toLowerCase();
         let isCorrect = false;
 
@@ -61,8 +60,7 @@ router.post('/:id/solve', auth, async (req, res) => {
             return res.status(400).json({ msg: 'Incorrect answer' });
         }
         
-        // ✅ FIX #2: Added defensive checks to prevent crash from old/bad data.
-        // This ensures `user.recentlySolved`, `p`, and `p.puzzleId` exist before calling .toString()
+
         const alreadySolved = user.recentlySolved && user.recentlySolved.some(
             p => p && p.puzzleId && p.puzzleId.toString() === puzzle._id.toString()
         );
@@ -78,7 +76,7 @@ router.post('/:id/solve', auth, async (req, res) => {
                 user.difficultyBreakdown[diffKey] += 1;
             }
 
-            // Push an object to the array, not just an ID
+
             user.recentlySolved.push({ puzzleId: puzzle._id });
             
             await puzzle.save();
@@ -86,7 +84,7 @@ router.post('/:id/solve', auth, async (req, res) => {
 
         await user.save();
         
-        // Return the complete, updated user object.
+
         res.json(user);
 
     } catch (err) {
@@ -96,8 +94,7 @@ router.post('/:id/solve', auth, async (req, res) => {
 });
 
 
-// @route DELETE api/puzzles/:id (Admin only)
-// No changes needed here
+
 router.delete('/:id', auth, async (req, res) => {
     if (!req.user.isAdmin) return res.status(401).json({ msg: 'Not authorized' });
 

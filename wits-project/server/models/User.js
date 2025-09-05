@@ -15,7 +15,7 @@ const UserSchema = new mongoose.Schema({
         _id: false,
         puzzleId: { type: mongoose.Schema.Types.ObjectId, ref: 'Puzzle' }
     }],
-    // ✅ ADDED: Fields for password reset functionality
+ 
     resetPasswordToken: String,
     resetPasswordExpires: Date,
 });
