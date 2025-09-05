@@ -3,7 +3,8 @@ import axios from 'axios';
 
 // --- API HELPER ---
 const api = axios.create({
-    baseURL: process.env.REACT_APP_API_URL || 'http://localhost:5001/api',
+    // ✅ CHANGED: Use a relative path so it works on Render and locally
+    baseURL: '/api', 
     headers: {
         'Content-Type': 'application/json',
     },
@@ -864,3 +865,4 @@ export default function App() {
         </div>
     );
 }
+
