@@ -31,9 +31,12 @@ const ClockIcon = () => ( <svg xmlns="http://www.w3.org/2000/svg" width="24" hei
 const CalendarIcon = () => ( <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-500 dark:text-gray-400"> <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line> </svg> );
 const BoltIcon = () => ( <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-white dark:text-black"> <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon> </svg> );
 const CheckIcon = () => ( <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6L9 17l-5-5"/></svg> );
+const MenuIcon = () => ( <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg> );
+const XIcon = () => ( <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg> );
 
 // --- UI COMPONENTS ---
 const Navbar = ({ currentPage, setCurrentPage, isAdmin, isDarkMode, toggleDarkMode, isAuthenticated, handleLogout }) => {
+    const [isMenuOpen, setIsMenuOpen] = useState(false);
     const navLinks = ['Home', 'Puzzles'];
     if (isAuthenticated) {
         navLinks.push('Dashboard');
@@ -41,19 +44,26 @@ const Navbar = ({ currentPage, setCurrentPage, isAdmin, isDarkMode, toggleDarkMo
     if (isAdmin) {
         navLinks.push('Admin');
     }
+
+    const handleNavClick = (page) => {
+        setCurrentPage(page);
+        setIsMenuOpen(false);
+    };
+
     return (
         <header className="bg-white/80 dark:bg-gray-950/80 backdrop-blur-md sticky top-0 z-50 border-b border-gray-200 dark:border-gray-800">
             <div className="container mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="flex items-center justify-between h-16">
-                    <div className="flex items-center space-x-3 cursor-pointer" onClick={() => setCurrentPage('home')}>
+                    <div className="flex items-center space-x-3 cursor-pointer" onClick={() => handleNavClick('home')}>
                         <LogoIcon isDarkMode={isDarkMode} />
                         <span className="text-xl font-bold text-gray-800 dark:text-gray-200">Wits</span>
                     </div>
+                    {/* Desktop Menu */}
                     <nav className="hidden md:flex items-center space-x-8">
                         {navLinks.map(link => (
                             <button
                                 key={link}
-                                onClick={() => setCurrentPage(link.toLowerCase())}
+                                onClick={() => handleNavClick(link.toLowerCase())}
                                 className={`text-sm font-medium transition-colors ${currentPage === link.toLowerCase() ? 'text-black dark:text-white font-semibold' : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'}`}
                             >
                                 {link}
@@ -68,13 +78,35 @@ const Navbar = ({ currentPage, setCurrentPage, isAdmin, isDarkMode, toggleDarkMo
                             <button onClick={handleLogout} className="px-4 py-2 text-sm font-medium text-white bg-black rounded-lg hover:bg-gray-800 dark:bg-white dark:text-black dark:hover:bg-gray-200">Sign Out</button>
                         ) : (
                             <>
-                                <button onClick={() => setCurrentPage('signin')} className="hidden sm:inline-block text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white">Sign In</button>
-                                <button onClick={() => setCurrentPage('signup')} className="px-4 py-2 text-sm font-medium text-white bg-black rounded-lg hover:bg-gray-800 dark:bg-white dark:text-black dark:hover:bg-gray-200">Sign Up</button>
+                                <button onClick={() => handleNavClick('signin')} className="hidden sm:inline-block text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white">Sign In</button>
+                                <button onClick={() => handleNavClick('signup')} className="px-4 py-2 text-sm font-medium text-white bg-black rounded-lg hover:bg-gray-800 dark:bg-white dark:text-black dark:hover:bg-gray-200">Sign Up</button>
                             </>
                         )}
+                         {/* Mobile Menu Button */}
+                        <div className="md:hidden">
+                            <button onClick={() => setIsMenuOpen(!isMenuOpen)} className="p-2 rounded-md text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800">
+                                {isMenuOpen ? <XIcon /> : <MenuIcon />}
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
+             {/* Mobile Menu Panel */}
+            {isMenuOpen && (
+                <div className="md:hidden">
+                    <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
+                        {navLinks.map(link => (
+                            <button
+                                key={link}
+                                onClick={() => handleNavClick(link.toLowerCase())}
+                                className={`block w-full text-left px-3 py-2 rounded-md text-base font-medium ${currentPage === link.toLowerCase() ? 'bg-black text-white dark:bg-white dark:text-black' : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800'}`}
+                            >
+                                {link}
+                            </button>
+                        ))}
+                    </div>
+                </div>
+            )}
         </header>
     );
 };
@@ -581,6 +613,13 @@ const AuthPage = ({ isSignIn, setCurrentPage, handleAuth }) => {
                                     className="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-md shadow-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-200" />
                             </div>
                         )}
+                        {isSignIn && (
+                            <div className="text-sm text-right">
+                                <button type="button" onClick={() => setCurrentPage('forgotpassword')} className="font-medium text-black dark:text-white hover:underline">
+                                    Forgot Password?
+                                </button>
+                            </div>
+                        )}
                         <div>
                             <button type="submit" className="w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-black hover:bg-gray-800 dark:bg-white dark:text-black dark:hover:bg-gray-200">
                                 {isSignIn ? 'Sign In' : 'Create Account'}
@@ -598,6 +637,127 @@ const AuthPage = ({ isSignIn, setCurrentPage, handleAuth }) => {
         </div>
     );
 };
+
+const ForgotPasswordPage = ({ handleForgotPassword, setCurrentPage }) => {
+    const [email, setEmail] = useState('');
+    const [message, setMessage] = useState('');
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        const success = await handleForgotPassword(email);
+        if (success) {
+            setMessage('If an account with that email exists, a password reset link has been sent.');
+        } else {
+            setMessage('An error occurred. Please try again later.');
+        }
+    };
+
+    return (
+        <div className="bg-gray-50 dark:bg-black min-h-screen flex items-center justify-center py-12">
+            <div className="max-w-md w-full mx-auto">
+                <div className="text-center mb-8">
+                    <h1 className="text-4xl font-bold text-gray-900 dark:text-white">Forgot Password</h1>
+                    <p className="mt-2 text-gray-600 dark:text-gray-300">
+                        Enter your email to receive a reset link.
+                    </p>
+                </div>
+                <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl p-8 shadow-sm">
+                    {message ? (
+                        <p className="text-center text-green-600 dark:text-green-400">{message}</p>
+                    ) : (
+                        <form onSubmit={handleSubmit} className="space-y-6">
+                            <div>
+                                <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Email Address</label>
+                                <input type="email" name="email" id="email" value={email} onChange={e => setEmail(e.target.value)} required className="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-md shadow-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-200" />
+                            </div>
+                            <div>
+                                <button type="submit" className="w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-black hover:bg-gray-800 dark:bg-white dark:text-black dark:hover:bg-gray-200">
+                                    Send Reset Link
+                                </button>
+                            </div>
+                        </form>
+                    )}
+                     <p className="mt-6 text-center text-sm text-gray-600 dark:text-gray-400">
+                        Remembered your password?{' '}
+                        <button onClick={() => setCurrentPage('signin')} className="font-medium text-black dark:text-white hover:underline">
+                            Sign In
+                        </button>
+                    </p>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+const ResetPasswordPage = ({ handleResetPassword, setCurrentPage }) => {
+    const [password, setPassword] = useState('');
+    const [confirmPassword, setConfirmPassword] = useState('');
+    const [message, setMessage] = useState('');
+    const [token, setToken] = useState('');
+
+    useEffect(() => {
+        // Extract token from URL
+        const params = new URLSearchParams(window.location.search);
+        const urlToken = params.get('token');
+        if (urlToken) {
+            setToken(urlToken);
+        } else {
+            setMessage('Invalid or missing reset token.');
+        }
+    }, []);
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        if (password !== confirmPassword) {
+            setMessage('Passwords do not match.');
+            return;
+        }
+        if (!token) {
+             setMessage('Invalid or missing reset token.');
+            return;
+        }
+
+        const success = await handleResetPassword(token, password);
+        if (success) {
+            setMessage('Your password has been reset successfully! You can now sign in.');
+            setTimeout(() => setCurrentPage('signin'), 3000);
+        } else {
+            setMessage('Failed to reset password. The link may have expired.');
+        }
+    };
+
+    return (
+        <div className="bg-gray-50 dark:bg-black min-h-screen flex items-center justify-center py-12">
+            <div className="max-w-md w-full mx-auto">
+                <div className="text-center mb-8">
+                    <h1 className="text-4xl font-bold text-gray-900 dark:text-white">Reset Your Password</h1>
+                </div>
+                <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl p-8 shadow-sm">
+                    {message ? (
+                        <p className="text-center text-green-600 dark:text-green-400">{message}</p>
+                    ) : (
+                        <form onSubmit={handleSubmit} className="space-y-6">
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">New Password</label>
+                                <input type="password" value={password} onChange={e => setPassword(e.target.value)} required className="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-md shadow-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-200" />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Confirm New Password</label>
+                                <input type="password" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} required className="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-md shadow-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-200" />
+                            </div>
+                            <div>
+                                <button type="submit" className="w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-black hover:bg-gray-800 dark:bg-white dark:text-black dark:hover:bg-gray-200">
+                                    Reset Password
+                                </button>
+                            </div>
+                        </form>
+                    )}
+                </div>
+            </div>
+        </div>
+    );
+};
+
 
 const AdminPage = ({ puzzles, onAddPuzzle, onDeletePuzzle }) => {
     const [newPuzzle, setNewPuzzle] = useState({ title: '', question: '', answer: '', difficulty: 'Easy', category: 'Logic', hints: '', timeLimit: 5, featured: false, xpReward: 100 });
@@ -731,6 +891,12 @@ export default function App() {
     }, []);
 
     useEffect(() => {
+        const path = window.location.pathname;
+        const params = new URLSearchParams(window.location.search);
+        if (path.startsWith('/resetpassword') && params.has('token')) {
+            setCurrentPage('resetpassword');
+        }
+
         loadUser();
         fetchPuzzles();
     }, [loadUser, fetchPuzzles]);
@@ -754,6 +920,27 @@ export default function App() {
             const errorMsg = err.response?.data?.msg || 'An error occurred.';
             alert(`Authentication failed: ${errorMsg}`);
             console.error(err.response);
+        }
+    };
+
+    const handleForgotPassword = async (email) => {
+        try {
+            await api.post('/auth/forgot-password', { email });
+            return true; // Indicate success
+        } catch (err) {
+            console.error('Forgot password error:', err.response);
+            // Don't reveal if email exists, but return false for error state
+            return false;
+        }
+    };
+
+    const handleResetPassword = async (token, password) => {
+        try {
+            await api.post('/auth/reset-password', { token, password });
+            return true; // Indicate success
+        } catch (err) {
+            console.error('Reset password error:', err.response);
+            return false;
         }
     };
     
@@ -840,6 +1027,10 @@ export default function App() {
                 return <AuthPage isSignIn={true} setCurrentPage={setCurrentPage} handleAuth={handleAuth} />;
             case 'signup':
                  return <AuthPage isSignIn={false} setCurrentPage={setCurrentPage} handleAuth={handleAuth} />;
+            case 'forgotpassword':
+                return <ForgotPasswordPage handleForgotPassword={handleForgotPassword} setCurrentPage={setCurrentPage} />;
+            case 'resetpassword':
+                return <ResetPasswordPage handleResetPassword={handleResetPassword} setCurrentPage={setCurrentPage} />;
             default:
                 return <HomePage setCurrentPage={setCurrentPage} onSelectPuzzle={handleSelectPuzzle} isDarkMode={isDarkMode} dailyPuzzle={puzzles[0]} />;
         }
@@ -865,4 +1056,3 @@ export default function App() {
         </div>
     );
 }
-
