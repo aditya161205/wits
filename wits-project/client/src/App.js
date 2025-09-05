@@ -3,7 +3,6 @@ import axios from 'axios';
 
 // --- API HELPER ---
 const api = axios.create({
-    
     baseURL: '/api', 
     headers: {
         'Content-Type': 'application/json',
@@ -309,8 +308,6 @@ const PuzzlesPage = ({ puzzles, onSelectPuzzle, user }) => {
         return difficultyMatch && categoryMatch;
     });
     
-    // This check handles the backend's data inconsistency (id vs puzzleId)
-
     const solvedPuzzleIds = new Set(user?.recentlySolved?.map(p => p.puzzleId) || []);
 
     return (
@@ -466,7 +463,9 @@ const PuzzlePage = ({ puzzle, user, onPuzzleSolved, onDeductXp, onNavigateAway }
         const isAlreadySolved = user.recentlySolved.some(p => p.puzzleId === puzzle.id);
     
         if (isAlreadySolved) {
-            if (userAnswer.trim().toLowerCase() === puzzle.answer.trim().toLowerCase()) {
+            const normalizedUserAnswer = userAnswer.trim().toLowerCase();
+            const normalizedAnswer = puzzle.answer.trim().toLowerCase();
+            if (normalizedUserAnswer === normalizedAnswer) {
                 setSubmissionStatus('correct_resolved');
             } else {
                 setSubmissionStatus('incorrect');
@@ -478,7 +477,6 @@ const PuzzlePage = ({ puzzle, user, onPuzzleSolved, onDeductXp, onNavigateAway }
         try {
             const res = await api.post(`/puzzles/${puzzle.id}/solve`, { userAnswer });
             setSubmissionStatus('correct_new');
-            // ✅ UPDATED: The backend now returns the full user object directly
             onPuzzleSolved(res.data);
         } catch (error) {
             console.error("Answer submission failed:", error.response?.data?.msg || error.message);
@@ -558,7 +556,21 @@ const PuzzlePage = ({ puzzle, user, onPuzzleSolved, onDeductXp, onNavigateAway }
                         </div>
                         <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl p-6">
                             <h3 className="font-semibold text-gray-800 dark:text-gray-200 mb-4">Solution</h3>
-                            {isSolutionRevealed ? ( <p className="text-sm text-gray-600 dark:text-gray-300 p-3 bg-gray-50 dark:bg-gray-800/50 rounded-lg font-semibold">{puzzle.answer}</p> ) : ( <button onClick={revealSolution} className="w-full py-2 text-sm font-semibold text-red-600 border border-red-600 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20"> Reveal Solution (-50 XP) </button> )}
+                            {isSolutionRevealed ? (
+                                <div className="text-sm text-gray-600 dark:text-gray-300 p-3 bg-gray-50 dark:bg-gray-800/50 rounded-lg space-y-2">
+                                    <p><span className="font-semibold text-gray-800 dark:text-gray-200">Answer:</span> {puzzle.answer}</p>
+                                    {puzzle.explanation && (
+                                        <div>
+                                            <hr className="my-2 border-gray-200 dark:border-gray-700" />
+                                            <p className="whitespace-pre-wrap">{puzzle.explanation}</p>
+                                        </div>
+                                    )}
+                                </div>
+                            ) : (
+                                <button onClick={revealSolution} className="w-full py-2 text-sm font-semibold text-red-600 border border-red-600 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20">
+                                    Reveal Solution (-50 XP)
+                                </button>
+                            )}
                         </div>
                     </div>
                 </div>
@@ -760,7 +772,8 @@ const ResetPasswordPage = ({ handleResetPassword, setCurrentPage }) => {
 
 
 const AdminPage = ({ puzzles, onAddPuzzle, onDeletePuzzle }) => {
-    const [newPuzzle, setNewPuzzle] = useState({ title: '', question: '', answer: '', difficulty: 'Easy', category: 'Logic', hints: '', timeLimit: 5, featured: false, xpReward: 100 });
+    // ✅ CHANGED: Added 'explanation' to the initial state
+    const [newPuzzle, setNewPuzzle] = useState({ title: '', question: '', answer: '', explanation: '', difficulty: 'Easy', category: 'Logic', hints: '', timeLimit: 5, featured: false, xpReward: 100 });
 
     const handleInputChange = (e) => {
         const { name, value, type, checked } = e.target;
@@ -776,7 +789,8 @@ const AdminPage = ({ puzzles, onAddPuzzle, onDeletePuzzle }) => {
             xpReward: parseInt(newPuzzle.xpReward, 10)
         };
         onAddPuzzle(puzzleToAdd);
-        setNewPuzzle({ title: '', question: '', answer: '', difficulty: 'Easy', category: 'Logic', hints: '', timeLimit: 5, featured: false, xpReward: 100 });
+        // ✅ CHANGED: Reset 'explanation' field on submit
+        setNewPuzzle({ title: '', question: '', answer: '', explanation: '', difficulty: 'Easy', category: 'Logic', hints: '', timeLimit: 5, featured: false, xpReward: 100 });
     };
 
     return (
@@ -795,6 +809,8 @@ const AdminPage = ({ puzzles, onAddPuzzle, onDeletePuzzle }) => {
                                 <div> <label htmlFor="title" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Title</label> <input type="text" name="title" value={newPuzzle.title} onChange={handleInputChange} className="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-md shadow-sm bg-white dark:bg-gray-800" required /> </div>
                                 <div> <label htmlFor="question" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Question</label> <textarea name="question" rows="3" value={newPuzzle.question} onChange={handleInputChange} className="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-md shadow-sm bg-white dark:bg-gray-800" required></textarea> </div>
                                 <div> <label htmlFor="answer" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Answer</label> <input type="text" name="answer" value={newPuzzle.answer} onChange={handleInputChange} className="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-md shadow-sm bg-white dark:bg-gray-800" required /> </div>
+                                {/* ✅ ADDED: New textarea for the full solution explanation */}
+                                <div> <label htmlFor="explanation" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Full Solution Explanation</label> <textarea name="explanation" rows="4" value={newPuzzle.explanation} onChange={handleInputChange} className="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-md shadow-sm bg-white dark:bg-gray-800" required></textarea> </div>
                                 <div> <label htmlFor="hints" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Hints (comma-separated)</label> <input type="text" name="hints" value={newPuzzle.hints} onChange={handleInputChange} className="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-md shadow-sm bg-white dark:bg-gray-800" /> </div>
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                                     <div> <label htmlFor="difficulty" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Difficulty</label> <select name="difficulty" value={newPuzzle.difficulty} onChange={handleInputChange} className="mt-1 block w-full pl-3 pr-10 py-2 border-gray-300 dark:border-gray-700 rounded-md bg-white dark:bg-gray-800"> <option>Easy</option> <option>Medium</option> <option>Hard</option> </select> </div>
