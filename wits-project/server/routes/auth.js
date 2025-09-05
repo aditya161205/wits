@@ -32,36 +32,25 @@ router.post(
         return res.status(400).json({ msg: 'User already exists' });
       }
 
-      const isAdmin = email.toLowerCase() === 'admin@wits.com';
+      // Check if the user should be an admin
+      const isAdmin = process.env.ADMIN_EMAIL && email.toLowerCase() === process.env.ADMIN_EMAIL.toLowerCase();
 
+      // ✅ SIMPLIFIED: New user object matches the updated schema
       user = new User({
         email: email.toLowerCase(),
         password,
         isAdmin,
         puzzlesSolved: 0,
         xp: 0,
-        xpTotal: 250,
-        level: 1,
-        currentStreak: 0,
-        dailyStreak: 0,
-        avgTime: '0:00',
         difficultyBreakdown: { easy: 0, medium: 0, hard: 0 },
-        recentlySolved: [],
+        recentlySolved: [], // Correctly initialized as an empty array
       });
 
-      // Hash password
       const salt = await bcrypt.genSalt(10);
       user.password = await bcrypt.hash(password, salt);
-
       await user.save();
 
-      // Create JWT payload
-      const payload = {
-        user: {
-          id: user.id,
-          isAdmin: user.isAdmin,
-        },
-      };
+      const payload = { user: { id: user.id, isAdmin: user.isAdmin } };
 
       jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '10h' }, (err, token) => {
         if (err) throw err;
@@ -104,12 +93,7 @@ router.post(
         return res.status(400).json({ msg: 'Invalid Credentials' });
       }
 
-      const payload = {
-        user: {
-          id: user.id,
-          isAdmin: user.isAdmin,
-        },
-      };
+      const payload = { user: { id: user.id, isAdmin: user.isAdmin } };
 
       jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '10h' }, (err, token) => {
         if (err) throw err;
@@ -129,6 +113,7 @@ router.post(
  */
 router.get('/', auth, async (req, res) => {
   try {
+    // ✅ This will now fetch the user with the correctly structured `recentlySolved` array
     const user = await User.findById(req.user.id).select('-password');
     return res.json(user);
   } catch (err) {

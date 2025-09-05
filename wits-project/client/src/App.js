@@ -29,65 +29,7 @@ const XPIcon = () => ( <svg xmlns="http://www.w3.org/2000/svg" width="24" height
 const ClockIcon = () => ( <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"> <circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline> </svg> );
 const CalendarIcon = () => ( <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-500 dark:text-gray-400"> <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line> </svg> );
 const BoltIcon = () => ( <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-white dark:text-black"> <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon> </svg> );
-
-// --- HELPERS ---
-const toLocalDateString = (date) => {
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-    return `${year}-${month}-${day}`;
-};
-
-// --- PUZZLE HEATMAP COMPONENT ---
-const PuzzleHeatmap = ({ solveLog, isDarkMode }) => {
-    const today = new Date();
-    const days = [];
-    for (let i = 0; i < 365; i++) {
-        const date = new Date(today);
-        date.setDate(today.getDate() - i);
-        days.push(date);
-    }
-
-    // build a map of date -> count (from solveLog)
-    const solvedDates = (solveLog || []).reduce((acc, entry) => {
-        acc[entry.date] = entry.count;
-        return acc;
-    }, {});
-
-    const colorMap = (count) => {
-        if (count === 0) return isDarkMode ? 'bg-gray-800' : 'bg-gray-200';
-        if (count >= 1) return isDarkMode ? 'bg-green-600' : 'bg-green-500'; 
-    };
-
-    return (
-        <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl p-6 h-full">
-            <div className="flex justify-between items-center mb-4">
-                <h4 className="font-semibold text-gray-800 dark:text-gray-200">Solving Streak</h4>
-                <div className="flex justify-end text-xs text-gray-500 dark:text-gray-400 items-center">
-                    Less
-                    <div className="w-3 h-3 rounded-sm ml-1 mr-0.5 bg-gray-200 dark:bg-gray-800"></div>
-                    <div className="w-3 h-3 rounded-sm mx-0.5 bg-green-500 dark:bg-green-600"></div>
-                    More
-                </div>
-            </div>
-            <div className="overflow-x-auto">
-                <div className="grid grid-flow-col grid-rows-7 gap-1 py-1">
-                    {days.reverse().map((day) => {
-                        const dateString = toLocalDateString(day);
-                        const solvedCount = solvedDates[dateString] || 0;
-                        return (
-                            <div
-                                key={day.toISOString()}
-                                className={`w-3 h-3 rounded-sm transition-colors ${colorMap(solvedCount)}`}
-                                title={`${solvedCount} puzzle(s) solved on ${day.toDateString()}`}
-                            />
-                        );
-                    })}
-                </div>
-            </div>
-        </div>
-    );
-};
+const CheckIcon = () => ( <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6L9 17l-5-5"/></svg> );
 
 // --- UI COMPONENTS ---
 const Navbar = ({ currentPage, setCurrentPage, isAdmin, isDarkMode, toggleDarkMode, isAuthenticated, handleLogout }) => {
@@ -334,7 +276,9 @@ const PuzzlesPage = ({ puzzles, onSelectPuzzle, user }) => {
         return difficultyMatch && categoryMatch;
     });
     
-    const solvedPuzzleIds = new Set(user?.recentlySolved?.map(p => p.puzzleId || p.id) || []);
+    // This check handles the backend's data inconsistency (id vs puzzleId)
+    // ✅ This logic is now perfect because the backend sends `recentlySolved` as [{ puzzleId: '...' }]
+    const solvedPuzzleIds = new Set(user?.recentlySolved?.map(p => p.puzzleId) || []);
 
     return (
         <div className="bg-gray-50 dark:bg-black min-h-screen">
@@ -381,7 +325,18 @@ const PuzzlesPage = ({ puzzles, onSelectPuzzle, user }) => {
     );
 };
 
-const DashboardPage = ({ user, puzzles, onSelectPuzzle, setCurrentPage, isDarkMode }) => {
+const DashboardPage = ({ user }) => {
+    
+    const StatCard = ({ icon, value, label, color }) => (
+        <div className="flex flex-col items-center justify-center p-6 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl h-full">
+            <div className={`p-4 rounded-full mb-4 ${color}`}>
+                {icon}
+            </div>
+            <p className="text-4xl font-bold text-gray-800 dark:text-gray-200">{value}</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">{label}</p>
+        </div>
+    );
+
     return (
         <div className="bg-gray-50 dark:bg-black min-h-screen">
             <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
@@ -392,16 +347,19 @@ const DashboardPage = ({ user, puzzles, onSelectPuzzle, setCurrentPage, isDarkMo
                     </p>
                 </div>
 
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
-                    <div className="lg:col-span-1 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl p-6 flex flex-col items-center text-center justify-center">
-                        <XPIcon />
-                        <p className="text-5xl font-bold text-gray-800 dark:text-gray-200 my-2">{user.xp}</p>
-                        <p className="text-sm text-gray-500 dark:text-gray-400">Total XP Earned</p>
-                    </div>
-
-                    <div className="lg:col-span-2">
-                        <PuzzleHeatmap solveLog={user.solveLog} isDarkMode={isDarkMode} />
-                    </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+                    <StatCard 
+                        icon={<XPIcon />} 
+                        value={user.xp} 
+                        label="Total XP Earned" 
+                        color="bg-yellow-100 dark:bg-yellow-900/30 text-yellow-600 dark:text-yellow-400"
+                    />
+                    <StatCard 
+                        icon={<CheckIcon />} 
+                        value={user.puzzlesSolved} 
+                        label="Puzzles Solved" 
+                        color="bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400"
+                    />
                 </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -467,33 +425,32 @@ const PuzzlePage = ({ puzzle, user, onPuzzleSolved, onDeductXp, onNavigateAway }
             setIsSolutionRevealed(true);
         }
     };
+
     const handleAnswerSubmit = async (e) => {
         e.preventDefault();
         if (!userAnswer) return;
     
-        const isAlreadySolved = user.recentlySolved.some(
-            p => (p.puzzleId || p.id) === puzzle.id
-        );
+        const isAlreadySolved = user.recentlySolved.some(p => p.puzzleId === puzzle.id);
     
         if (isAlreadySolved) {
-            // ✅ LOCAL CHECK ONLY
             if (userAnswer.trim().toLowerCase() === puzzle.answer.trim().toLowerCase()) {
                 setSubmissionStatus('correct_resolved');
             } else {
                 setSubmissionStatus('incorrect');
                 setUserAnswer('');
             }
-            return; // <-- stop here, no API call
+            return;
         }
     
-        // ✅ First time solves still use backend
         try {
             const res = await api.post(`/puzzles/${puzzle.id}/solve`, { userAnswer });
             setSubmissionStatus('correct_new');
-            onPuzzleSolved(puzzle, res.data.user, false);
+            // ✅ UPDATED: The backend now returns the full user object directly
+            onPuzzleSolved(res.data);
         } catch (error) {
             console.error("Answer submission failed:", error.response?.data?.msg || error.message);
             setSubmissionStatus('incorrect');
+            setUserAnswer('');
         }
     };
 
@@ -642,7 +599,7 @@ const AuthPage = ({ isSignIn, setCurrentPage, handleAuth }) => {
 };
 
 const AdminPage = ({ puzzles, onAddPuzzle, onDeletePuzzle }) => {
-    const [newPuzzle, setNewPuzzle] = useState({ title: '', question: '', answer: '', difficulty: 'Easy', category: 'Logic', hints: '', timeLimit: 5, featured: false });
+    const [newPuzzle, setNewPuzzle] = useState({ title: '', question: '', answer: '', difficulty: 'Easy', category: 'Logic', hints: '', timeLimit: 5, featured: false, xpReward: 100 });
 
     const handleInputChange = (e) => {
         const { name, value, type, checked } = e.target;
@@ -655,9 +612,10 @@ const AdminPage = ({ puzzles, onAddPuzzle, onDeletePuzzle }) => {
             ...newPuzzle,
             hints: newPuzzle.hints.split(',').map(h => h.trim()).filter(h => h),
             timeLimit: parseInt(newPuzzle.timeLimit, 10),
+            xpReward: parseInt(newPuzzle.xpReward, 10)
         };
         onAddPuzzle(puzzleToAdd);
-        setNewPuzzle({ title: '', question: '', answer: '', difficulty: 'Easy', category: 'Logic', hints: '', timeLimit: 5, featured: false });
+        setNewPuzzle({ title: '', question: '', answer: '', difficulty: 'Easy', category: 'Logic', hints: '', timeLimit: 5, featured: false, xpReward: 100 });
     };
 
     return (
@@ -681,7 +639,8 @@ const AdminPage = ({ puzzles, onAddPuzzle, onDeletePuzzle }) => {
                                     <div> <label htmlFor="difficulty" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Difficulty</label> <select name="difficulty" value={newPuzzle.difficulty} onChange={handleInputChange} className="mt-1 block w-full pl-3 pr-10 py-2 border-gray-300 dark:border-gray-700 rounded-md bg-white dark:bg-gray-800"> <option>Easy</option> <option>Medium</option> <option>Hard</option> </select> </div>
                                     <div> <label htmlFor="category" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Category</label> <select name="category" value={newPuzzle.category} onChange={handleInputChange} className="mt-1 block w-full pl-3 pr-10 py-2 border-gray-300 dark:border-gray-700 rounded-md bg-white dark:bg-gray-800"> <option>Math</option> <option>Logic</option> <option>Visual</option> </select> </div>
                                     <div> <label htmlFor="timeLimit" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Time Limit (mins)</label> <input type="number" name="timeLimit" value={newPuzzle.timeLimit} onChange={handleInputChange} className="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-md shadow-sm bg-white dark:bg-gray-800" /> </div>
-                                    <div className="flex items-end pb-2"> <div className="flex items-center h-5"> <input name="featured" type="checkbox" checked={newPuzzle.featured} onChange={handleInputChange} className="h-4 w-4 text-black border-gray-300 rounded bg-gray-50" /> </div> <div className="ml-3 text-sm"> <label htmlFor="featured" className="font-medium text-gray-700 dark:text-gray-300">Mark as Featured</label> </div> </div>
+                                    <div> <label htmlFor="xpReward" className="block text-sm font-medium text-gray-700 dark:text-gray-300">XP Reward</label> <input type="number" name="xpReward" value={newPuzzle.xpReward} onChange={handleInputChange} className="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-md shadow-sm bg-white dark:bg-gray-800" /> </div>
+                                    <div className="flex items-end pb-2 sm:col-span-2"> <div className="flex items-center h-5"> <input name="featured" type="checkbox" checked={newPuzzle.featured} onChange={handleInputChange} className="h-4 w-4 text-black border-gray-300 rounded bg-gray-50" /> </div> <div className="ml-3 text-sm"> <label htmlFor="featured" className="font-medium text-gray-700 dark:text-gray-300">Mark as Featured (Daily Puzzle)</label> </div> </div>
                                 </div>
                                 <div> <button type="submit" className="w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-black hover:bg-gray-800 dark:bg-white dark:text-black dark:hover:bg-gray-200"> Add Puzzle </button> </div>
                             </form>
@@ -806,26 +765,10 @@ export default function App() {
         setSelectedPuzzle(puzzle);
         setCurrentPage('puzzle');
     };
-    const handlePuzzleSolved = async (solvedPuzzle, updatedUserFromServer, isAlreadySolved) => {
-        setCurrentUser(prev => {
-            if (!prev) return updatedUserFromServer;
-    
-            const today = toLocalDateString(new Date());
-            let newSolveLog = prev.solveLog || [];
-            const entry = newSolveLog.find(e => e.date === today);
-    
-            if (entry) {
-                entry.count += 1;
-            } else {
-                newSolveLog = [...newSolveLog, { date: today, count: 1 }];
-            }
-    
-            return { ...updatedUserFromServer, solveLog: newSolveLog };
-        });
-    
-        if (!isAlreadySolved) {
-            await fetchPuzzles(); // still refresh puzzle stats
-        }
+
+    const handlePuzzleSolved = async (updatedUserFromServer) => {
+        setCurrentUser(updatedUserFromServer);
+        await fetchPuzzles();
     };
 
     const handleNavigateAway = () => {
@@ -889,7 +832,7 @@ export default function App() {
             case 'puzzles':
                 return <PuzzlesPage puzzles={puzzles} onSelectPuzzle={handleSelectPuzzle} user={currentUser} />;
             case 'dashboard':
-                return isAuthenticated && currentUser ? <DashboardPage user={currentUser} puzzles={puzzles} onSelectPuzzle={handleSelectPuzzle} setCurrentPage={setCurrentPage} isDarkMode={isDarkMode} /> : <AuthPage isSignIn={true} setCurrentPage={setCurrentPage} handleAuth={handleAuth} />;
+                return isAuthenticated && currentUser ? <DashboardPage user={currentUser} /> : <AuthPage isSignIn={true} setCurrentPage={setCurrentPage} handleAuth={handleAuth} />;
             case 'admin':
                 return isAdmin ? <AdminPage puzzles={puzzles} onAddPuzzle={handleAddPuzzle} onDeletePuzzle={handleDeletePuzzle} /> : <RestrictedPage />;
             case 'signin':

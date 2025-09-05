@@ -1,4 +1,3 @@
-// server/routes/puzzles.js
 const express = require('express');
 const router = express.Router();
 const Puzzle = require('../models/Puzzle');
@@ -6,6 +5,7 @@ const User = require('../models/User');
 const auth = require('../middleware/auth');
 
 // @route GET api/puzzles
+// No changes needed here
 router.get('/', async (req, res) => {
     try {
         const puzzles = await Puzzle.find().sort({ _id: -1 });
@@ -17,6 +17,7 @@ router.get('/', async (req, res) => {
 });
 
 // @route POST api/puzzles (Admin only)
+// No changes needed here
 router.post('/', auth, async (req, res) => {
     if (!req.user.isAdmin) return res.status(401).json({ msg: 'Not authorized' });
 
@@ -24,11 +25,13 @@ router.post('/', auth, async (req, res) => {
         const newPuzzle = new Puzzle({ ...req.body });
         const puzzle = await newPuzzle.save();
         res.json(puzzle);
-    } catch (err) {
+    } catch (err)
+    {
         console.error('Error adding puzzle:', err.message);
         res.status(500).send('Server Error');
     }
 });
+
 
 // @route POST api/puzzles/:id/solve
 router.post('/:id/solve', auth, async (req, res) => {
@@ -40,21 +43,16 @@ router.post('/:id/solve', auth, async (req, res) => {
 
         const { userAnswer } = req.body;
         if (!userAnswer) return res.status(400).json({ msg: 'Answer is required' });
-
-        // Normalize function for string comparison
+        
+        // ✅ FIX #1: Restored robust answer checking for both numbers and text.
         const normalize = (val) => val?.toString().trim().toLowerCase();
-
         let isCorrect = false;
 
-        // Try numeric comparison first
         const numAnswer = parseFloat(puzzle.answer);
         const numUserAnswer = parseFloat(userAnswer);
-
         if (!isNaN(numAnswer) && !isNaN(numUserAnswer)) {
             isCorrect = numAnswer === numUserAnswer;
         }
-
-        // Then text comparison (case insensitive)
         if (!isCorrect) {
             isCorrect = normalize(userAnswer) === normalize(puzzle.answer);
         }
@@ -62,52 +60,48 @@ router.post('/:id/solve', auth, async (req, res) => {
         if (!isCorrect) {
             return res.status(400).json({ msg: 'Incorrect answer' });
         }
-
-        // ✅ Check if puzzle already solved
-        const alreadySolved = user.solveLog?.some(
-            (entry) => entry.puzzleId?.toString() === puzzle._id.toString()
+        
+        // ✅ FIX #2: Added defensive checks to prevent crash from old/bad data.
+        // This ensures `user.recentlySolved`, `p`, and `p.puzzleId` exist before calling .toString()
+        const alreadySolved = user.recentlySolved && user.recentlySolved.some(
+            p => p && p.puzzleId && p.puzzleId.toString() === puzzle._id.toString()
         );
 
-        // Award XP only if not solved before
         if (!alreadySolved) {
-            puzzle.solvedCount = (puzzle.solvedCount || 0) + 1;
+            puzzle.solvedCount += 1;
+            
+            user.puzzlesSolved += 1;
+            user.xp += (puzzle.xpReward || 100);
+
+            const diffKey = puzzle.difficulty.toLowerCase();
+            if (user.difficultyBreakdown.hasOwnProperty(diffKey)) {
+                user.difficultyBreakdown[diffKey] += 1;
+            }
+
+            // Push an object to the array, not just an ID
+            user.recentlySolved.push({ puzzleId: puzzle._id });
+            
             await puzzle.save();
-
-            user.puzzlesSolved = (user.puzzlesSolved || 0) + 1;
-            user.xp = (user.xp || 0) + 100;
-
-            const diffKey = puzzle.difficulty?.toLowerCase() || 'easy';
-            user.difficultyBreakdown[diffKey] = (user.difficultyBreakdown[diffKey] || 0) + 1;
-        }
-
-        // ✅ Always mark the solve in solveLog by DAY
-        const today = new Date();
-        const dateKey = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`;
-
-        const logEntry = user.solveLog.find(l => l.date === dateKey);
-        if (logEntry) {
-            logEntry.count += 1;
-        } else {
-            user.solveLog.push({ date: dateKey, count: 1 });
         }
 
         await user.save();
+        
+        // Return the complete, updated user object.
+        res.json(user);
 
-        res.json({ msg: 'Correct!', user, puzzle, alreadySolved });
     } catch (err) {
         console.error('Solve Route Error:', err.message);
         res.status(500).send('Server Error');
     }
 });
 
+
 // @route DELETE api/puzzles/:id (Admin only)
+// No changes needed here
 router.delete('/:id', auth, async (req, res) => {
     if (!req.user.isAdmin) return res.status(401).json({ msg: 'Not authorized' });
 
     try {
-        const puzzle = await Puzzle.findById(req.params.id);
-        if (!puzzle) return res.status(404).json({ msg: 'Puzzle not found' });
-
         await Puzzle.findByIdAndDelete(req.params.id);
         res.json({ msg: 'Puzzle removed' });
     } catch (err) {
