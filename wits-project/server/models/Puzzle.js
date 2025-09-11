@@ -6,14 +6,23 @@ const PuzzleSchema = new mongoose.Schema({
     difficulty: { type: String, required: true, enum: ['Easy', 'Medium', 'Hard'] },
     question: { type: String, required: true },
     answer: { type: String, required: true },
-
     explanation: { type: String, required: true },
     hints: [String],
     timeLimit: { type: Number, required: true },
     solvedCount: { type: Number, default: 0 },
     successRate: { type: Number, default: 80 },
     avgTime: { type: String, default: '5m 0s' },
-    featured: { type: Boolean, default: false }
+    featured: { type: Boolean, default: false },
+    
+    xpReward: {
+        type: Number,
+        default: 100
+    },
+    
+    tags: {
+        type: [String],
+        default: []
+    }
 });
 
 module.exports = mongoose.model('puzzle', PuzzleSchema);

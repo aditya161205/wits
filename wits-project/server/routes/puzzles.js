@@ -5,7 +5,6 @@ const User = require('../models/User');
 const auth = require('../middleware/auth');
 
 // @route GET api/puzzles
-
 router.get('/', async (req, res) => {
     try {
         const puzzles = await Puzzle.find().sort({ _id: -1 });
@@ -17,21 +16,45 @@ router.get('/', async (req, res) => {
 });
 
 // @route POST api/puzzles (Admin only)
-
 router.post('/', auth, async (req, res) => {
     if (!req.user.isAdmin) return res.status(401).json({ msg: 'Not authorized' });
 
     try {
-        const newPuzzle = new Puzzle({ ...req.body });
+        const {
+            title,
+            category,
+            difficulty,
+            question,
+            answer,
+            explanation,
+            hints,
+            timeLimit,
+            featured,
+            xpReward,
+            tags
+        } = req.body;
+
+        const newPuzzle = new Puzzle({
+            title,
+            category,
+            difficulty,
+            question,
+            answer,
+            explanation,
+            hints,
+            timeLimit,
+            featured,
+            xpReward,
+            tags
+        });
+
         const puzzle = await newPuzzle.save();
         res.json(puzzle);
-    } catch (err)
-    {
+    } catch (err) {
         console.error('Error adding puzzle:', err.message);
         res.status(500).send('Server Error');
     }
 });
-
 
 // @route POST api/puzzles/:id/solve
 router.post('/:id/solve', auth, async (req, res) => {
@@ -43,7 +66,7 @@ router.post('/:id/solve', auth, async (req, res) => {
 
         const { userAnswer } = req.body;
         if (!userAnswer) return res.status(400).json({ msg: 'Answer is required' });
-   
+
         const normalize = (val) => val?.toString().trim().toLowerCase();
         let isCorrect = false;
 
@@ -59,7 +82,6 @@ router.post('/:id/solve', auth, async (req, res) => {
         if (!isCorrect) {
             return res.status(400).json({ msg: 'Incorrect answer' });
         }
-        
 
         const alreadySolved = user.recentlySolved && user.recentlySolved.some(
             p => p && p.puzzleId && p.puzzleId.toString() === puzzle._id.toString()
@@ -67,24 +89,20 @@ router.post('/:id/solve', auth, async (req, res) => {
 
         if (!alreadySolved) {
             puzzle.solvedCount += 1;
-            
+
             user.puzzlesSolved += 1;
-            user.xp += (puzzle.xpReward || 100);
+            user.xp += puzzle.xpReward;
 
             const diffKey = puzzle.difficulty.toLowerCase();
             if (user.difficultyBreakdown.hasOwnProperty(diffKey)) {
                 user.difficultyBreakdown[diffKey] += 1;
             }
 
-
             user.recentlySolved.push({ puzzleId: puzzle._id });
-            
             await puzzle.save();
         }
 
         await user.save();
-        
-
         res.json(user);
 
     } catch (err) {
@@ -93,8 +111,7 @@ router.post('/:id/solve', auth, async (req, res) => {
     }
 });
 
-
-
+// @route DELETE api/puzzles/:id
 router.delete('/:id', auth, async (req, res) => {
     if (!req.user.isAdmin) return res.status(401).json({ msg: 'Not authorized' });
 

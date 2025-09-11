@@ -3,7 +3,7 @@ import axios from 'axios';
 
 // --- API HELPER ---
 const api = axios.create({
-    baseURL: '/api', 
+    baseURL: '/api',
     headers: {
         'Content-Type': 'application/json',
     },
@@ -81,7 +81,7 @@ const Navbar = ({ currentPage, setCurrentPage, isAdmin, isDarkMode, toggleDarkMo
                                 <button onClick={() => handleNavClick('signup')} className="px-4 py-2 text-sm font-medium text-white bg-black rounded-lg hover:bg-gray-800 dark:bg-white dark:text-black dark:hover:bg-gray-200">Sign Up</button>
                             </>
                         )}
-                         {/* Mobile Menu Button */}
+                        {/* Mobile Menu Button */}
                         <div className="md:hidden">
                             <button onClick={() => setIsMenuOpen(!isMenuOpen)} className="p-2 rounded-md text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800">
                                 {isMenuOpen ? <XIcon /> : <MenuIcon />}
@@ -90,7 +90,7 @@ const Navbar = ({ currentPage, setCurrentPage, isAdmin, isDarkMode, toggleDarkMo
                     </div>
                 </div>
             </div>
-             {/* Mobile Menu Panel */}
+            {/* Mobile Menu Panel */}
             {isMenuOpen && (
                 <div className="md:hidden">
                     <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
@@ -121,8 +121,14 @@ const PuzzleCard = ({ puzzle, onSelectPuzzle, isSolved }) => {
         <div className={`bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl p-6 flex flex-col justify-between transition-all hover:shadow-lg hover:-translate-y-1 ${isSolved ? 'opacity-60' : ''}`}>
             <div>
                 <div className="flex items-center justify-between mb-4">
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 flex-wrap">
                         <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${difficultyStyles[puzzle.difficulty]}`}>{puzzle.difficulty}</span>
+                        {/* Conditionally render the Interview tag */}
+                        {puzzle.tags && puzzle.tags.includes('Interview') && (
+                            <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-purple-100 text-purple-800 dark:bg-purple-900/20 dark:text-purple-400">
+                                Interview
+                            </span>
+                        )}
                         {isSolved && <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400">Solved</span>}
                     </div>
                 </div>
@@ -131,14 +137,15 @@ const PuzzleCard = ({ puzzle, onSelectPuzzle, isSolved }) => {
                 <p className="text-sm text-gray-600 dark:text-gray-300 mt-2 h-10 line-clamp-2">{puzzle.question}</p>
             </div>
             <div className="mt-6">
-                 <div className="flex justify-between items-center text-sm text-gray-500 dark:text-gray-400 mb-4">
+                <div className="flex justify-between items-center text-sm text-gray-500 dark:text-gray-400 mb-4">
                     <div className="flex items-center gap-2">
                         <UserGroupIcon />
                         <span className="font-semibold text-gray-800 dark:text-gray-200">{puzzle.solvedCount?.toLocaleString()}</span> Solved
                     </div>
-                     <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2">
                         <XPIcon />
-                        <span className="font-semibold text-gray-800 dark:text-gray-200">{puzzle.xpReward || 100}</span> XP
+                        {/* ✅ CHANGED: Removed the `|| 100` fallback to show the true value from the DB. */}
+                        <span className="font-semibold text-gray-800 dark:text-gray-200">{puzzle.xpReward}</span> XP
                     </div>
                 </div>
                 <button onClick={() => onSelectPuzzle(puzzle)} className={`w-full text-center py-2.5 mt-4 rounded-lg font-semibold transition bg-black hover:bg-gray-800 text-white dark:bg-white dark:text-black dark:hover:bg-gray-200`}>
@@ -183,7 +190,7 @@ const InteractiveGridBackground = ({ isDarkMode }) => {
         let dots = [];
         const dotSpacing = 30;
         const dotSize = 2;
-        
+
         const createDots = () => {
             dots = [];
             for (let x = dotSpacing / 2; x < canvas.width; x += dotSpacing) {
@@ -204,7 +211,7 @@ const InteractiveGridBackground = ({ isDarkMode }) => {
                 const dy = mouse.current.y - dot.y;
                 const dist = Math.sqrt(dx * dx + dy * dy);
                 const force = Math.max(0, (mouse.current.radius - dist) / mouse.current.radius);
-                
+
                 if (dist < mouse.current.radius) {
                     dot.x -= (dx / dist) * force * 4;
                     dot.y -= (dy / dist) * force * 4;
@@ -263,34 +270,34 @@ const HomePage = ({ setCurrentPage, onSelectPuzzle, isDarkMode, dailyPuzzle }) =
                         <p className="mt-4 max-w-xl mx-auto text-gray-600 dark:text-gray-300">
                             Take on our daily puzzle challenge and build your solving streak.
                         </p>
-                       {dailyPuzzle ? (
-                         <div className="mt-10 max-w-2xl mx-auto bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl shadow-lg p-6 text-left">
-                            <div className="flex justify-between items-start">
-                                <div>
-                                    <div className="flex items-center gap-2 mb-1">
-                                        <CalendarIcon />
-                                        <p className="text-sm font-medium text-gray-700 dark:text-gray-300">Daily Challenge</p>
+                        {dailyPuzzle ? (
+                            <div className="mt-10 max-w-2xl mx-auto bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl shadow-lg p-6 text-left">
+                                <div className="flex justify-between items-start">
+                                    <div>
+                                        <div className="flex items-center gap-2 mb-1">
+                                            <CalendarIcon />
+                                            <p className="text-sm font-medium text-gray-700 dark:text-gray-300">Daily Challenge</p>
+                                        </div>
+                                        <p className="text-xs text-gray-500 dark:text-gray-400">{new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p>
                                     </div>
-                                    <p className="text-xs text-gray-500 dark:text-gray-400">{new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p>
+                                    <span className="text-xs font-medium px-2.5 py-1 rounded-full bg-green-100 text-green-800">Available</span>
                                 </div>
-                                <span className="text-xs font-medium px-2.5 py-1 rounded-full bg-green-100 text-green-800">Available</span>
-                            </div>
-                            <div className="mt-4">
-                                <div className="flex justify-between items-baseline">
-                                    <h4 className="font-semibold text-gray-800 dark:text-gray-200">{dailyPuzzle.title}</h4>
-                                    <div className="flex items-center gap-4 text-sm text-gray-500 dark:text-gray-400">
-                                        <span className="px-2 py-0.5 text-xs bg-gray-100 dark:bg-gray-700 rounded">{dailyPuzzle.category}</span>
-                                        <span className={`px-2 py-0.5 text-xs rounded ${dailyPuzzle.difficulty === 'Easy' ? 'bg-green-100 text-green-700' : dailyPuzzle.difficulty === 'Medium' ? 'bg-yellow-100 text-yellow-700' : 'bg-red-100 text-red-700'}`}>{dailyPuzzle.difficulty}</span>
+                                <div className="mt-4">
+                                    <div className="flex justify-between items-baseline">
+                                        <h4 className="font-semibold text-gray-800 dark:text-gray-200">{dailyPuzzle.title}</h4>
+                                        <div className="flex items-center gap-4 text-sm text-gray-500 dark:text-gray-400">
+                                            <span className="px-2 py-0.5 text-xs bg-gray-100 dark:bg-gray-700 rounded">{dailyPuzzle.category}</span>
+                                            <span className={`px-2 py-0.5 text-xs rounded ${dailyPuzzle.difficulty === 'Easy' ? 'bg-green-100 text-green-700' : dailyPuzzle.difficulty === 'Medium' ? 'bg-yellow-100 text-yellow-700' : 'bg-red-100 text-red-700'}`}>{dailyPuzzle.difficulty}</span>
+                                        </div>
                                     </div>
+                                    <p className="text-sm text-gray-600 dark:text-gray-300 mt-2">{dailyPuzzle.question}</p>
                                 </div>
-                                <p className="text-sm text-gray-600 dark:text-gray-300 mt-2">{dailyPuzzle.question}</p>
+                                <button onClick={() => onSelectPuzzle(dailyPuzzle)} className="mt-6 w-full flex items-center justify-center gap-2 py-3 text-base font-medium text-white bg-black rounded-lg hover:bg-gray-800 dark:bg-white dark:text-black dark:hover:bg-gray-200">
+                                    <BoltIcon />
+                                    Start Daily Challenge
+                                </button>
                             </div>
-                            <button onClick={() => onSelectPuzzle(dailyPuzzle)} className="mt-6 w-full flex items-center justify-center gap-2 py-3 text-base font-medium text-white bg-black rounded-lg hover:bg-gray-800 dark:bg-white dark:text-black dark:hover:bg-gray-200">
-                                <BoltIcon />
-                                Start Daily Challenge
-                            </button>
-                        </div>
-                       ) : <p className="mt-10 text-gray-500">Loading daily challenge...</p>}
+                        ) : <p className="mt-10 text-gray-500">Loading daily challenge...</p>}
                     </div>
                 </div>
             </main>
@@ -307,7 +314,7 @@ const PuzzlesPage = ({ puzzles, onSelectPuzzle, user }) => {
         const categoryMatch = category === 'All' || p.category === category;
         return difficultyMatch && categoryMatch;
     });
-    
+
     const solvedPuzzleIds = new Set(user?.recentlySolved?.map(p => p.puzzleId) || []);
 
     return (
@@ -347,7 +354,7 @@ const PuzzlesPage = ({ puzzles, onSelectPuzzle, user }) => {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                     {filteredPuzzles.length > 0 ? filteredPuzzles.map(puzzle => (
-                        <PuzzleCard key={puzzle.id} puzzle={puzzle} onSelectPuzzle={onSelectPuzzle} isSolved={solvedPuzzleIds.has(puzzle.id)} />
+                        <PuzzleCard key={puzzle._id} puzzle={puzzle} onSelectPuzzle={onSelectPuzzle} isSolved={solvedPuzzleIds.has(puzzle._id)} />
                     )) : <p className="text-gray-500 md:col-span-3 text-center">No puzzles found. Try adjusting your filters or add a new puzzle in the admin panel!</p>}
                 </div>
             </div>
@@ -356,7 +363,7 @@ const PuzzlesPage = ({ puzzles, onSelectPuzzle, user }) => {
 };
 
 const DashboardPage = ({ user }) => {
-    
+
     const StatCard = ({ icon, value, label, color }) => (
         <div className="flex flex-col items-center justify-center p-6 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl h-full">
             <div className={`p-4 rounded-full mb-4 ${color}`}>
@@ -378,16 +385,16 @@ const DashboardPage = ({ user }) => {
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
-                    <StatCard 
-                        icon={<XPIcon />} 
-                        value={user.xp} 
-                        label="Total XP Earned" 
+                    <StatCard
+                        icon={<XPIcon />}
+                        value={user.xp}
+                        label="Total XP Earned"
                         color="bg-yellow-100 dark:bg-yellow-900/30 text-yellow-600 dark:text-yellow-400"
                     />
-                    <StatCard 
-                        icon={<CheckIcon />} 
-                        value={user.puzzlesSolved} 
-                        label="Puzzles Solved" 
+                    <StatCard
+                        icon={<CheckIcon />}
+                        value={user.puzzlesSolved}
+                        label="Puzzles Solved"
                         color="bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400"
                     />
                 </div>
@@ -422,7 +429,7 @@ const PuzzlePage = ({ puzzle, user, onPuzzleSolved, onDeductXp, onNavigateAway }
     const [userAnswer, setUserAnswer] = useState('');
     const [submissionStatus, setSubmissionStatus] = useState('idle');
     const [isSolutionRevealed, setIsSolutionRevealed] = useState(false);
-    
+
     useEffect(() => {
         setTimeRemaining(puzzle.timeLimit * 60);
         setRevealedHints([]);
@@ -448,7 +455,7 @@ const PuzzlePage = ({ puzzle, user, onPuzzleSolved, onDeductXp, onNavigateAway }
             setRevealedHints([...revealedHints, puzzle.hints[revealedHints.length]]);
         }
     };
-    
+
     const revealSolution = async () => {
         if (!isSolutionRevealed) {
             await onDeductXp(50);
@@ -459,9 +466,9 @@ const PuzzlePage = ({ puzzle, user, onPuzzleSolved, onDeductXp, onNavigateAway }
     const handleAnswerSubmit = async (e) => {
         e.preventDefault();
         if (!userAnswer) return;
-    
-        const isAlreadySolved = user.recentlySolved.some(p => p.puzzleId === puzzle.id);
-    
+
+        const isAlreadySolved = user.recentlySolved.some(p => p.puzzleId === puzzle._id);
+
         if (isAlreadySolved) {
             const normalizedUserAnswer = userAnswer.trim().toLowerCase();
             const normalizedAnswer = puzzle.answer.trim().toLowerCase();
@@ -473,9 +480,9 @@ const PuzzlePage = ({ puzzle, user, onPuzzleSolved, onDeductXp, onNavigateAway }
             }
             return;
         }
-    
+
         try {
-            const res = await api.post(`/puzzles/${puzzle.id}/solve`, { userAnswer });
+            const res = await api.post(`/puzzles/${puzzle._id}/solve`, { userAnswer });
             setSubmissionStatus('correct_new');
             onPuzzleSolved(res.data);
         } catch (error) {
@@ -501,7 +508,7 @@ const PuzzlePage = ({ puzzle, user, onPuzzleSolved, onDeductXp, onNavigateAway }
 
                 <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
                     <div className="lg:col-span-3 space-y-8">
-                         <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl p-8">
+                        <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl p-8">
                             <h1 className="text-3xl font-bold text-gray-900 dark:text-white">{puzzle.title}</h1>
                             <p className="mt-4 text-lg text-gray-600 dark:text-gray-300">{puzzle.question}</p>
                         </div>
@@ -515,7 +522,7 @@ const PuzzlePage = ({ puzzle, user, onPuzzleSolved, onDeductXp, onNavigateAway }
                                     </button>
                                 </div>
                             </form>
-                            
+
                             {(submissionStatus === 'correct_new' || submissionStatus === 'correct_resolved') && (
                                 <div className="mt-4 p-4 rounded-lg bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 text-center">
                                     <p className="font-semibold">Correct!</p>
@@ -526,7 +533,7 @@ const PuzzlePage = ({ puzzle, user, onPuzzleSolved, onDeductXp, onNavigateAway }
                                 </div>
                             )}
 
-                             {submissionStatus === 'incorrect' && (
+                            {submissionStatus === 'incorrect' && (
                                 <div className="mt-4 p-4 rounded-lg bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 text-center">
                                     <p className="font-semibold">Incorrect, please try again.</p>
                                     <button onClick={handleTryAgain} className="mt-2 px-4 py-2 text-sm font-medium text-red-800 bg-red-200 rounded-lg hover:bg-red-300">Try Again</button>
@@ -617,7 +624,7 @@ const AuthPage = ({ isSignIn, setCurrentPage, handleAuth }) => {
                             <input type="password" name="password" id="password" value={password} onChange={e => setPassword(e.target.value)} required className="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-md shadow-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-200" />
                         </div>
                         {!isSignIn && (
-                             <div>
+                            <div>
                                 <label htmlFor="confirm-password"
                                     className="block text-sm font-medium text-gray-700 dark:text-gray-300">Confirm
                                     Password</label>
@@ -689,7 +696,7 @@ const ForgotPasswordPage = ({ handleForgotPassword, setCurrentPage }) => {
                             </div>
                         </form>
                     )}
-                     <p className="mt-6 text-center text-sm text-gray-600 dark:text-gray-400">
+                    <p className="mt-6 text-center text-sm text-gray-600 dark:text-gray-400">
                         Remembered your password?{' '}
                         <button onClick={() => setCurrentPage('signin')} className="font-medium text-black dark:text-white hover:underline">
                             Sign In
@@ -725,7 +732,7 @@ const ResetPasswordPage = ({ handleResetPassword, setCurrentPage }) => {
             return;
         }
         if (!token) {
-             setMessage('Invalid or missing reset token.');
+            setMessage('Invalid or missing reset token.');
             return;
         }
 
@@ -772,25 +779,32 @@ const ResetPasswordPage = ({ handleResetPassword, setCurrentPage }) => {
 
 
 const AdminPage = ({ puzzles, onAddPuzzle, onDeletePuzzle }) => {
-    // ✅ CHANGED: Added 'explanation' to the initial state
-    const [newPuzzle, setNewPuzzle] = useState({ title: '', question: '', answer: '', explanation: '', difficulty: 'Easy', category: 'Logic', hints: '', timeLimit: 5, featured: false, xpReward: 100 });
+    const [newPuzzle, setNewPuzzle] = useState({ title: '', question: '', answer: '', explanation: '', difficulty: 'Easy', category: 'Logic', hints: '', timeLimit: 5, featured: false, xpReward: 100, tags: [] });
 
     const handleInputChange = (e) => {
         const { name, value, type, checked } = e.target;
-        setNewPuzzle(prev => ({ ...prev, [name]: type === 'checkbox' ? checked : value }));
+
+        if (name === 'tags') {
+            const updatedTags = checked
+                ? [...newPuzzle.tags, value]
+                : newPuzzle.tags.filter(tag => tag !== value);
+            setNewPuzzle(prev => ({ ...prev, tags: updatedTags }));
+        } else {
+            setNewPuzzle(prev => ({ ...prev, [name]: type === 'checkbox' ? checked : value }));
+        }
     };
 
     const handleSubmit = (e) => {
         e.preventDefault();
         const puzzleToAdd = {
-            ...newPuzzle,
+            ...newPuzzle, // `tags` array is now included here
             hints: newPuzzle.hints.split(',').map(h => h.trim()).filter(h => h),
             timeLimit: parseInt(newPuzzle.timeLimit, 10),
             xpReward: parseInt(newPuzzle.xpReward, 10)
         };
         onAddPuzzle(puzzleToAdd);
-        // ✅ CHANGED: Reset 'explanation' field on submit
-        setNewPuzzle({ title: '', question: '', answer: '', explanation: '', difficulty: 'Easy', category: 'Logic', hints: '', timeLimit: 5, featured: false, xpReward: 100 });
+        // ✨ ADDED: Reset `tags` field on submit
+        setNewPuzzle({ title: '', question: '', answer: '', explanation: '', difficulty: 'Easy', category: 'Logic', hints: '', timeLimit: 5, featured: false, xpReward: 100, tags: [] });
     };
 
     return (
@@ -809,7 +823,6 @@ const AdminPage = ({ puzzles, onAddPuzzle, onDeletePuzzle }) => {
                                 <div> <label htmlFor="title" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Title</label> <input type="text" name="title" value={newPuzzle.title} onChange={handleInputChange} className="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-md shadow-sm bg-white dark:bg-gray-800" required /> </div>
                                 <div> <label htmlFor="question" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Question</label> <textarea name="question" rows="3" value={newPuzzle.question} onChange={handleInputChange} className="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-md shadow-sm bg-white dark:bg-gray-800" required></textarea> </div>
                                 <div> <label htmlFor="answer" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Answer</label> <input type="text" name="answer" value={newPuzzle.answer} onChange={handleInputChange} className="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-md shadow-sm bg-white dark:bg-gray-800" required /> </div>
-                                {/* ✅ ADDED: New textarea for the full solution explanation */}
                                 <div> <label htmlFor="explanation" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Full Solution Explanation</label> <textarea name="explanation" rows="4" value={newPuzzle.explanation} onChange={handleInputChange} className="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-md shadow-sm bg-white dark:bg-gray-800" required></textarea> </div>
                                 <div> <label htmlFor="hints" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Hints (comma-separated)</label> <input type="text" name="hints" value={newPuzzle.hints} onChange={handleInputChange} className="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-md shadow-sm bg-white dark:bg-gray-800" /> </div>
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
@@ -817,7 +830,9 @@ const AdminPage = ({ puzzles, onAddPuzzle, onDeletePuzzle }) => {
                                     <div> <label htmlFor="category" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Category</label> <select name="category" value={newPuzzle.category} onChange={handleInputChange} className="mt-1 block w-full pl-3 pr-10 py-2 border-gray-300 dark:border-gray-700 rounded-md bg-white dark:bg-gray-800"> <option>Math</option> <option>Logic</option> <option>Visual</option> </select> </div>
                                     <div> <label htmlFor="timeLimit" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Time Limit (mins)</label> <input type="number" name="timeLimit" value={newPuzzle.timeLimit} onChange={handleInputChange} className="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-md shadow-sm bg-white dark:bg-gray-800" /> </div>
                                     <div> <label htmlFor="xpReward" className="block text-sm font-medium text-gray-700 dark:text-gray-300">XP Reward</label> <input type="number" name="xpReward" value={newPuzzle.xpReward} onChange={handleInputChange} className="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-md shadow-sm bg-white dark:bg-gray-800" /> </div>
-                                    <div className="flex items-end pb-2 sm:col-span-2"> <div className="flex items-center h-5"> <input name="featured" type="checkbox" checked={newPuzzle.featured} onChange={handleInputChange} className="h-4 w-4 text-black border-gray-300 rounded bg-gray-50" /> </div> <div className="ml-3 text-sm"> <label htmlFor="featured" className="font-medium text-gray-700 dark:text-gray-300">Mark as Featured (Daily Puzzle)</label> </div> </div>
+                                    <div className="flex items-center"> <input name="featured" type="checkbox" checked={newPuzzle.featured} onChange={handleInputChange} className="h-4 w-4 text-black border-gray-300 rounded bg-gray-50" /> <label htmlFor="featured" className="ml-3 block text-sm font-medium text-gray-700 dark:text-gray-300">Mark as Featured</label> </div>
+                                    {/* ✨ ADDED: Checkbox for the "Interview" tag */}
+                                    <div className="flex items-center"> <input name="tags" type="checkbox" value="Interview" checked={newPuzzle.tags.includes('Interview')} onChange={handleInputChange} className="h-4 w-4 text-black border-gray-300 rounded bg-gray-50" /> <label htmlFor="tags" className="ml-3 block text-sm font-medium text-gray-700 dark:text-gray-300">Mark as Interview Question</label> </div>
                                 </div>
                                 <div> <button type="submit" className="w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-black hover:bg-gray-800 dark:bg-white dark:text-black dark:hover:bg-gray-200"> Add Puzzle </button> </div>
                             </form>
@@ -826,23 +841,23 @@ const AdminPage = ({ puzzles, onAddPuzzle, onDeletePuzzle }) => {
 
                     {/* Manage Puzzles List */}
                     <div>
-                         <div className="text-center mb-10">
+                        <div className="text-center mb-10">
                             <h1 className="text-4xl font-bold text-gray-900 dark:text-white">Manage Puzzles</h1>
                             <p className="mt-4 text-gray-600 dark:text-gray-300">View and delete existing puzzles.</p>
                         </div>
                         <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl p-8 shadow-sm max-h-[80vh] overflow-y-auto">
-                           {puzzles.map(puzzle => (
-                               <div key={puzzle.id} className="flex items-center justify-between p-3 border-b border-gray-100 dark:border-gray-800">
-                                   <div>
-                                       <p className="font-semibold text-gray-800 dark:text-gray-200">{puzzle.title}</p>
-                                       <p className="text-xs text-gray-500 dark:text-gray-400">{puzzle.category} - {puzzle.difficulty}</p>
-                                   </div>
-                                   <button onClick={() => onDeletePuzzle(puzzle.id)} className="px-3 py-1 text-xs font-medium text-red-700 bg-red-100 rounded-full hover:bg-red-200 dark:bg-red-900/40 dark:text-red-300 dark:hover:bg-red-900/60">
-                                       Delete
-                                   </button>
-                               </div>
-                           ))}
-                           {puzzles.length === 0 && <p className="text-gray-500 text-center">No puzzles to display.</p>}
+                            {puzzles.map(puzzle => (
+                                <div key={puzzle._id} className="flex items-center justify-between p-3 border-b border-gray-100 dark:border-gray-800">
+                                    <div>
+                                        <p className="font-semibold text-gray-800 dark:text-gray-200">{puzzle.title}</p>
+                                        <p className="text-xs text-gray-500 dark:text-gray-400">{puzzle.category} - {puzzle.difficulty}</p>
+                                    </div>
+                                    <button onClick={() => onDeletePuzzle(puzzle._id)} className="px-3 py-1 text-xs font-medium text-red-700 bg-red-100 rounded-full hover:bg-red-200 dark:bg-red-900/40 dark:text-red-300 dark:hover:bg-red-900/60">
+                                        Delete
+                                    </button>
+                                </div>
+                            ))}
+                            {puzzles.length === 0 && <p className="text-gray-500 text-center">No puzzles to display.</p>}
                         </div>
                     </div>
                 </div>
@@ -874,11 +889,11 @@ export default function App() {
     const [currentPage, setCurrentPage] = useState('home');
     const [selectedPuzzle, setSelectedPuzzle] = useState(null);
     const [isDarkMode, setIsDarkMode] = useState(false);
-    
+
     const [isAuthenticated, setIsAuthenticated] = useState(false);
     const [currentUser, setCurrentUser] = useState(null);
     const [loading, setLoading] = useState(true);
-    
+
     const [puzzles, setPuzzles] = useState([]);
 
     const loadUser = useCallback(async () => {
@@ -899,8 +914,7 @@ export default function App() {
     const fetchPuzzles = useCallback(async () => {
         try {
             const res = await api.get('/puzzles');
-            const formattedPuzzles = res.data.map(p => ({ ...p, id: p._id }));
-            setPuzzles(formattedPuzzles);
+            setPuzzles(res.data);
         } catch (err) {
             console.error("Failed to fetch puzzles", err);
         }
@@ -945,7 +959,6 @@ export default function App() {
             return true; // Indicate success
         } catch (err) {
             console.error('Forgot password error:', err.response);
-            // Don't reveal if email exists, but return false for error state
             return false;
         }
     };
@@ -959,7 +972,7 @@ export default function App() {
             return false;
         }
     };
-    
+
     const handleSelectPuzzle = (puzzle) => {
         if (!isAuthenticated) {
             alert("Please sign in to solve puzzles.");
@@ -979,7 +992,7 @@ export default function App() {
         setSelectedPuzzle(null);
         setCurrentPage('puzzles');
     };
-    
+
     const handleAddPuzzle = async (newPuzzleData) => {
         try {
             await api.post('/puzzles', newPuzzleData);
@@ -990,15 +1003,15 @@ export default function App() {
             console.error(err);
         }
     };
-    
+
     const handleDeletePuzzle = async (puzzleId) => {
         if (window.confirm("Are you sure you want to delete this puzzle?")) {
             try {
                 await api.delete(`/puzzles/${puzzleId}`);
                 await fetchPuzzles();
             } catch (err) {
-                 alert('Failed to delete puzzle.');
-                 console.error(err);
+                alert('Failed to delete puzzle.');
+                console.error(err);
             }
         }
     };
@@ -1018,13 +1031,13 @@ export default function App() {
         }
 
         const isAdmin = currentUser?.isAdmin || false;
-        
+
         if (currentPage === 'puzzle' && selectedPuzzle) {
-            return <PuzzlePage 
+            return <PuzzlePage
                 puzzle={selectedPuzzle}
                 user={currentUser}
-                onPuzzleSolved={handlePuzzleSolved} 
-                onDeductXp={handleDeductXp} 
+                onPuzzleSolved={handlePuzzleSolved}
+                onDeductXp={handleDeductXp}
                 onNavigateAway={handleNavigateAway}
             />;
         }
@@ -1042,7 +1055,7 @@ export default function App() {
             case 'signin':
                 return <AuthPage isSignIn={true} setCurrentPage={setCurrentPage} handleAuth={handleAuth} />;
             case 'signup':
-                 return <AuthPage isSignIn={false} setCurrentPage={setCurrentPage} handleAuth={handleAuth} />;
+                return <AuthPage isSignIn={false} setCurrentPage={setCurrentPage} handleAuth={handleAuth} />;
             case 'forgotpassword':
                 return <ForgotPasswordPage handleForgotPassword={handleForgotPassword} setCurrentPage={setCurrentPage} />;
             case 'resetpassword':
@@ -1055,11 +1068,11 @@ export default function App() {
     return (
         <div className={isDarkMode ? 'dark' : ''}>
             <div className="font-sans antialiased bg-white dark:bg-black">
-                <Navbar 
-                    currentPage={currentPage} 
-                    setCurrentPage={setCurrentPage} 
-                    isAdmin={currentUser?.isAdmin || false} 
-                    isDarkMode={isDarkMode} 
+                <Navbar
+                    currentPage={currentPage}
+                    setCurrentPage={setCurrentPage}
+                    isAdmin={currentUser?.isAdmin || false}
+                    isDarkMode={isDarkMode}
                     toggleDarkMode={() => setIsDarkMode(!isDarkMode)}
                     isAuthenticated={isAuthenticated}
                     handleLogout={handleLogout}
