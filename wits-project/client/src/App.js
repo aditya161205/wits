@@ -144,7 +144,6 @@ const PuzzleCard = ({ puzzle, onSelectPuzzle, isSolved }) => {
                     </div>
                     <div className="flex items-center gap-2">
                         <XPIcon />
-                        {/* ✅ CHANGED: Removed the `|| 100` fallback to show the true value from the DB. */}
                         <span className="font-semibold text-gray-800 dark:text-gray-200">{puzzle.xpReward}</span> XP
                     </div>
                 </div>
@@ -423,6 +422,9 @@ const DashboardPage = ({ user }) => {
     );
 };
 
+// =================================================================
+// THIS IS THE UPDATED COMPONENT
+// =================================================================
 const PuzzlePage = ({ puzzle, user, onPuzzleSolved, onDeductXp, onNavigateAway }) => {
     const [timeRemaining, setTimeRemaining] = useState(puzzle.timeLimit * 60);
     const [revealedHints, setRevealedHints] = useState([]);
@@ -430,12 +432,44 @@ const PuzzlePage = ({ puzzle, user, onPuzzleSolved, onDeductXp, onNavigateAway }
     const [submissionStatus, setSubmissionStatus] = useState('idle');
     const [isSolutionRevealed, setIsSolutionRevealed] = useState(false);
 
+    // --- START: NEW AI ASSISTANT CODE ---
+    const [explanation, setExplanation] = useState('');
+    const [isLoading, setIsLoading] = useState(false);
+
+    const getAIExplanation = async (type) => {
+        setIsLoading(true);
+        setExplanation('');
+
+        try {
+            // The puzzle data is available directly from the component's props
+            const questionText = puzzle.question;
+            const solutionCode = puzzle.answer;
+
+            const response = await api.post('/puzzles/explain', {
+                type: type,
+                questionText: questionText,
+                solutionCode: type === 'solution' ? solutionCode : '',
+            });
+
+            const formattedExplanation = response.data.explanation.replace(/\n/g, '<br />');
+            setExplanation(formattedExplanation);
+
+        } catch (error) {
+            console.error('Error fetching AI explanation:', error);
+            setExplanation('Sorry, an error occurred while getting the explanation.');
+        } finally {
+            setIsLoading(false);
+        }
+    };
+    // --- END: NEW AI ASSISTANT CODE ---
+
     useEffect(() => {
         setTimeRemaining(puzzle.timeLimit * 60);
         setRevealedHints([]);
         setUserAnswer('');
         setSubmissionStatus('idle');
         setIsSolutionRevealed(false);
+        setExplanation(''); // Clear AI explanation when puzzle changes
 
         const timer = setInterval(() => {
             setTimeRemaining(prev => (prev > 0 ? prev - 1 : 0));
@@ -540,7 +574,26 @@ const PuzzlePage = ({ puzzle, user, onPuzzleSolved, onDeductXp, onNavigateAway }
                                 </div>
                             )}
                         </div>
+
+                        {/* --- START: NEW AI ASSISTANT JSX --- */}
+                        <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl p-8">
+                            <h2 className="text-xl font-semibold text-gray-800 dark:text-gray-200 mb-4">🤖 AI Assistant</h2>
+                             <div className="flex flex-col sm:flex-row gap-4">
+                                <button onClick={() => getAIExplanation('question')} disabled={isLoading} className="flex-1 px-6 py-3 text-base font-semibold text-black dark:text-white border border-gray-300 dark:border-gray-700 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 disabled:opacity-50">
+                                    Explain Question
+                                </button>
+                                <button onClick={() => getAIExplanation('solution')} disabled={isLoading} className="flex-1 px-6 py-3 text-base font-semibold text-black dark:text-white border border-gray-300 dark:border-gray-700 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 disabled:opacity-50">
+                                    Explain Solution
+                                 </button>
+                            </div>
+                            <div className="mt-4 text-gray-600 dark:text-gray-300">
+                                {isLoading && <p>🧠 Thinking...</p>}
+                                {explanation && <div className="p-4 bg-gray-50 dark:bg-gray-800/50 rounded-lg" dangerouslySetInnerHTML={{ __html: explanation }} />}
+                            </div>
+                        </div>
+                        {/* --- END: NEW AI ASSISTANT JSX --- */}
                     </div>
+
                     <div className="lg:col-span-2 space-y-8">
                         <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl p-6">
                             <h3 className="font-semibold text-gray-800 dark:text-gray-200 mb-4">Details</h3>
@@ -585,6 +638,7 @@ const PuzzlePage = ({ puzzle, user, onPuzzleSolved, onDeductXp, onNavigateAway }
         </div>
     );
 };
+
 
 const AuthPage = ({ isSignIn, setCurrentPage, handleAuth }) => {
     const [email, setEmail] = useState('');

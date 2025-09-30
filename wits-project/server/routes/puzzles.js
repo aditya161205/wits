@@ -4,6 +4,13 @@ const Puzzle = require('../models/Puzzle');
 const User = require('../models/User');
 const auth = require('../middleware/auth');
 
+
+const { GoogleGenerativeAI } = require("@google/generative-ai");
+
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+
+
 // @route GET api/puzzles
 router.get('/', async (req, res) => {
     try {
@@ -55,6 +62,43 @@ router.post('/', auth, async (req, res) => {
         res.status(500).send('Server Error');
     }
 });
+
+
+// =================================================================
+// START: NEW CODE FOR GEMINI
+// =================================================================
+
+// 3. This is your new AI endpoint to handle explanations
+router.post('/explain', async (req, res) => {
+    try {
+        const { type, questionText, solutionCode } = req.body;
+
+        let prompt = "";
+
+        if (type === 'question') {
+            prompt = `You are a helpful teaching assistant for a programming interview prep website. A user needs clarification on a puzzle. Explain the puzzle's goal, inputs, and expected outputs in a simple way. Here is the puzzle: "${questionText}"`;
+        } else if (type === 'solution') {
+            prompt = `You are an expert code reviewer. A user wants to understand a solution. Explain the provided code step-by-step, describe the logic, and analyze its time and space complexity. Here is the puzzle: "${questionText}". Here is the solution code: \`\`\`${solutionCode}\`\`\``;
+        } else {
+            return res.status(400).json({ error: 'Invalid explanation type.' });
+        }
+
+        const result = await model.generateContent(prompt);
+        const response = await result.response;
+        const explanation = response.text();
+
+        res.json({ explanation });
+
+    } catch (error) {
+        console.error("Error calling Gemini API:", error);
+        res.status(500).json({ error: "Failed to get explanation." });
+    }
+});
+
+// =================================================================
+// END: NEW CODE FOR GEMINI
+// =================================================================
+
 
 // @route POST api/puzzles/:id/solve
 router.post('/:id/solve', auth, async (req, res) => {
